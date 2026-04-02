@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"E:\\\\TaskNode\\\\src\\\\main\\\\java\\\\learning\\\\tasknode\\\\\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\hieun\\\\.claude\\\\plans\")",
+      "Read(//c/Users/hieun/.claude/**)"
+    ]
+  }
+}

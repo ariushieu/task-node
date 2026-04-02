@@ -1,0 +1,94 @@
+TASKNODE PROJECT - QUICK REFERENCE
+===================================
+
+CURRENT STATE:
+- Project: Created and ready
+- Dependencies: All configured
+- Package structure: All directories created (empty)
+- Database config: Needs setup
+- Code: Not yet started
+
+PACKAGE ROOT: learning.tasknode
+
+SUBDIRECTORIES (all empty, ready for implementation):
+- config/       Configuration classes
+- controller/   REST endpoints
+- dto/          Request/Response DTOs
+- enums/        Enum types
+- exception/    Exception classes
+- interfaces/   Interfaces
+- mapper/       DTO mappers
+- model/        JPA entities
+- repository/   Spring Data repos
+- service/      Business logic
+
+KEY NAMING CONVENTIONS:
+- Entities:     PascalCase (User, Task)
+- DTOs Request: {Entity}CreateRequest
+- DTOs Response:{Entity}Response
+- Controllers:  {Entity}Controller
+- Services:     {Entity}Service
+- Repositories: {Entity}Repository
+- Mappers:      {Entity}Mapper
+- Enums:        PascalCase (UserRole, TaskStatus)
+
+DATABASE STRATEGY:
+- DB Name Mapping: PhysicalNamingStrategySnakeCaseImpl
+- Java: firstName -> Database: first_name
+- Java: createdAt -> Database: created_at
+
+IMPORTANT PATTERNS:
+1. All entities extend BaseEntity (id, createdAt, updatedAt)
+2. Always use separate Request/Response DTOs
+3. Never expose JPA entities in API responses
+4. Use @Valid on controller parameters
+5. Apply Bean Validation on DTOs
+6. Use @RestControllerAdvice for global error handling
+7. Never hard-code secrets (use environment vars)
+
+LOMBOK ANNOTATIONS:
+- @Data              (Getter, Setter, ToString, EqualsHashCode)
+- @NoArgsConstructor (Required for JPA)
+- @Builder           (Builder pattern)
+- @Slf4j             (Logger injection)
+
+SPRING ANNOTATIONS:
+- @Entity            (JPA entity)
+- @RestController    (REST endpoint)
+- @Service           (Business logic)
+- @Repository        (Data access)
+- @Transactional     (Transaction management)
+- @Valid             (Validation trigger)
+- @RequestMapping    (URL mapping)
+- @PostMapping @GetMapping @PutMapping @DeleteMapping
+
+IMPLEMENTATION ORDER:
+1. Create BaseEntity
+2. Create entities
+3. Create enums
+4. Create DTOs
+5. Create mappers
+6. Create repositories
+7. Create services
+8. Create exceptions
+9. Create controllers
+10. Configure database
+11. Create security config
+12. Test
+
+REST ENDPOINT PATTERN:
+POST   /api/v1/users      Create
+GET    /api/v1/users      List all
+GET    /api/v1/users/{id} Get one
+PUT    /api/v1/users/{id} Update
+DELETE /api/v1/users/{id} Delete
+
+DATABASE CONFIG NEEDED:
+- spring.datasource.url
+- spring.datasource.username (use ${DB_USERNAME})
+- spring.datasource.password (use ${DB_PASSWORD})
+- spring.jpa.hibernate.ddl-auto
+- spring.jpa.properties.hibernate.dialect
+- spring.jpa.properties.hibernate.naming.physical-strategy
+
+PROJECT IS READY FOR IMPLEMENTATION
