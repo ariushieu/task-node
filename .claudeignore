@@ -1,0 +1,62 @@
+# ============================================================
+# .claudeignore — Files and directories Claude should NOT read
+# ============================================================
+
+# Build output
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# Gradle cache
+.gradle/
+gradle/
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+nbproject/
+
+# Environment & secrets (never expose to AI)
+.env
+.env.*
+*.local
+
+# Logs
+logs/
+*.log
+log/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Frontend build output
+node_modules/
+dist/
+.next/
+.nuxt/
+
+# Test reports & coverage
+test-output/
+coverage/
+*.exec
+jacoco.exec
+surefire-reports/
+
+# Docker
+.docker/
+
+# Temp / scratch
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp

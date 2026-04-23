@@ -1,8 +1,9 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import learning.tasknode.enums.NotificationType;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "notifications", indexes = {
@@ -14,7 +15,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

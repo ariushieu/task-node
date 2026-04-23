@@ -1,8 +1,9 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import learning.tasknode.enums.ApprovalAction;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "approval_logs", indexes = {
@@ -13,7 +14,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class ApprovalLog extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

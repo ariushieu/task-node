@@ -1,11 +1,13 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import learning.tasknode.enums.TaskPriority;
 import learning.tasknode.enums.TaskStatus;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Task extends BaseEntity {
 
     @Column(name = "title", nullable = false, length = 200)
@@ -46,6 +48,8 @@ public class Task extends BaseEntity {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    private LocalDateTime completedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)

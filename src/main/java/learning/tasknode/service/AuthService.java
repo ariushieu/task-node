@@ -5,14 +5,16 @@ import learning.tasknode.dto.LoginRequest;
 import learning.tasknode.dto.LoginResponse;
 import learning.tasknode.dto.RefreshTokenRequest;
 import learning.tasknode.dto.RefreshTokenResponse;
-import learning.tasknode.model.RefreshToken;
-import learning.tasknode.model.User;
+import learning.tasknode.entity.RefreshToken;
+import learning.tasknode.entity.User;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,21 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+
+    @Transactional
+    public void logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetails userDetails) {
+                User user = userRepository.findByUsername(userDetails.getUsername())
+                        .orElse(null);
+                if (user != null) {
+                    refreshTokenService.deleteByUser(user);
+                }
+            }
+        }
+    }
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
@@ -56,11 +73,13 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.findByToken(request.getRefreshToken());
         refreshTokenService.verifyExpiration(refreshToken);
 
-        String accessToken = jwtTokenProvider.generateAccessTokenFromUsername(
-                refreshToken.getUser().getUsername());
+        // Save user reference before deleting tokens to avoid lazy proxy issues
+        User user = refreshToken.getUser();
 
-        refreshTokenService.deleteByUser(refreshToken.getUser());
-        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(refreshToken.getUser());
+        String accessToken = jwtTokenProvider.generateAccessTokenFromUsername(user.getUsername());
+
+        refreshTokenService.deleteByUser(user);
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         return RefreshTokenResponse.builder()
                 .accessToken(accessToken)

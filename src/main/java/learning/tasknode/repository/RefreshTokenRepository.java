@@ -1,7 +1,7 @@
 package learning.tasknode.repository;
 
-import learning.tasknode.model.RefreshToken;
-import learning.tasknode.model.User;
+import learning.tasknode.entity.RefreshToken;
+import learning.tasknode.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

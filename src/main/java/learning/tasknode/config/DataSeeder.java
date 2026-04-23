@@ -1,7 +1,7 @@
 package learning.tasknode.config;
 
 import learning.tasknode.enums.UserRole;
-import learning.tasknode.model.User;
+import learning.tasknode.entity.User;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

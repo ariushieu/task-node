@@ -1,6 +1,6 @@
 package learning.tasknode.config;
 
-import learning.tasknode.model.User;
+import learning.tasknode.entity.User;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
