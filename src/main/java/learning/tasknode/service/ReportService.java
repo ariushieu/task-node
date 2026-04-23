@@ -21,7 +21,7 @@ public class ReportService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
 
-    public List<ProjectProgressResponse> getProjectProgress() {
+    public org.springframework.data.domain.Page<ProjectProgressResponse> getProjectProgress(org.springframework.data.domain.Pageable pageable) {
         List<Object[]> stats = taskRepository.getProjectProgressStats();
         List<ProjectProgressResponse> list = new ArrayList<>();
         for (Object[] row : stats) {
@@ -44,10 +44,12 @@ public class ReportService {
                         .build());
             }
         }
-        return list;
+        int start = (int) pageable.getOffset();
+int end = Math.min((start + pageable.getPageSize()), list.size());
+return new org.springframework.data.domain.PageImpl<>(list.subList(start, end), pageable, list.size());
     }
 
-    public List<EmployeePerformanceResponse> getEmployeePerformance(String start, String end) {
+    public org.springframework.data.domain.Page<EmployeePerformanceResponse> getEmployeePerformance(String start, String end, org.springframework.data.domain.Pageable pageable) {
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
         try { if (start != null) startTime = LocalDateTime.parse(start); } catch(Exception ignore) {}
@@ -74,6 +76,8 @@ public class ReportService {
                         .build());
             }
         }
-        return result;
+        int startIdx = (int) pageable.getOffset();
+int endIdx = Math.min((startIdx + pageable.getPageSize()), result.size());
+return new org.springframework.data.domain.PageImpl<>(result.subList(startIdx, endIdx), pageable, result.size());
     }
 }

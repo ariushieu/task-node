@@ -20,15 +20,15 @@ public class ReportController {
     private final ExportService exportService;
 
     @GetMapping("/employee-performance")
-    public ResponseEntity<List<EmployeePerformanceResponse>> getEmployeePerformance(
+    public ResponseEntity<org.springframework.data.domain.Page<EmployeePerformanceResponse>> getEmployeePerformance(
             @RequestParam(required = false) String start,
-            @RequestParam(required = false) String end) {
-        return ResponseEntity.ok(reportService.getEmployeePerformance(start, end));
+            @RequestParam(required = false) String end, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(reportService.getEmployeePerformance(start, end, pageable));
     }
 
     @GetMapping("/project-progress")
-    public ResponseEntity<List<ProjectProgressResponse>> getProjectProgress() {
-        return ResponseEntity.ok(reportService.getProjectProgress());
+    public ResponseEntity<org.springframework.data.domain.Page<ProjectProgressResponse>> getProjectProgress(org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(reportService.getProjectProgress(pageable));
     }
 
     @GetMapping("/export")

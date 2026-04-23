@@ -18,10 +18,9 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
 
-    public List<NotificationResponse> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId)
-                .stream().map(notificationMapper::toResponse)
-                .collect(Collectors.toList());
+    public org.springframework.data.domain.Page<NotificationResponse> getUnreadNotifications(Long userId, org.springframework.data.domain.Pageable pageable) {
+        return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId, pageable)
+        .map(notificationMapper::toResponse);
     }
 
     @Transactional

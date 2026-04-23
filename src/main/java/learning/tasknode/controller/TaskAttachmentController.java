@@ -18,8 +18,8 @@ public class TaskAttachmentController {
     private final TaskAttachmentService attachmentService;
 
     @GetMapping("/tasks/{taskId}/attachments")
-    public ResponseEntity<List<TaskAttachmentResponse>> listTaskAttachments(@PathVariable Long taskId) {
-        return ResponseEntity.ok(attachmentService.listByTask(taskId));
+    public ResponseEntity<Page<TaskAttachmentResponse>> listTaskAttachments(@PathVariable Long taskId, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(attachmentService.listByTask(taskId, pageable));
     }
 
     @PostMapping(value = "/tasks/{taskId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
