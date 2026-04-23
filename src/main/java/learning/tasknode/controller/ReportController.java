@@ -32,21 +32,23 @@ public class ReportController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<byte[]> exportProjectProgress(
-            @RequestParam(required = false, defaultValue = "excel") String type) throws Exception {
-        List<ProjectProgressResponse> data = reportService.getProjectProgress();
-        if ("pdf".equalsIgnoreCase(type)) {
-            byte[] pdf = exportService.exportProjectProgressToPdf(data);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=project-progress.pdf")
-                    .header("Content-Type", "application/pdf")
-                    .body(pdf);
-        } else {
-            byte[] excel = exportService.exportProjectProgressToExcel(data);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=project-progress.xlsx")
-                    .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                    .body(excel);
-        }
+public ResponseEntity<byte[]> exportProjectProgress(
+        @RequestParam(required = false, defaultValue = "excel") String type,
+        org.springframework.data.domain.Pageable pageable) throws Exception {
+    org.springframework.data.domain.Page<ProjectProgressResponse> page = reportService.getProjectProgress(pageable);
+    List<ProjectProgressResponse> data = page.getContent();
+    if ("pdf".equalsIgnoreCase(type)) {
+        byte[] pdf = exportService.exportProjectProgressToPdf(data);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=project-progress.pdf")
+                .header("Content-Type", "application/pdf")
+                .body(pdf);
+    } else {
+        byte[] excel = exportService.exportProjectProgressToExcel(data);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=project-progress.xlsx")
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excel);
     }
+}
 }

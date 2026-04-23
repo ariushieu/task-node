@@ -30,7 +30,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final NotificationWebSocketService notificationWebSocketService;
 
-    public List<CommentResponse> getCommentsOfTask(Long taskId, Long currentUserId) {
+    public org.springframework.data.domain.Page<CommentResponse> getCommentsOfTask(Long taskId, Long currentUserId, org.springframework.data.domain.Pageable pageable) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(taskId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc phù hợp!"));
         User user = userRepository.findById(currentUserId)
@@ -41,8 +41,8 @@ public class CommentService {
         if (!isProjectMember) {
             throw new BadRequestException("Bạn không có quyền xem bình luận do không thuộc dự án này!");
         }
-        List<Comment> comments = commentRepository.findByTaskIdAndIsDeletedFalseOrderByCreatedAtAsc(taskId);
-        return comments.stream().map(commentMapper::toResponse).collect(Collectors.toList());
+        return commentRepository.findByTaskIdAndIsDeletedFalseOrderByCreatedAtAsc(taskId, pageable)
+            .map(commentMapper::toResponse);
     }
 
     @Transactional
