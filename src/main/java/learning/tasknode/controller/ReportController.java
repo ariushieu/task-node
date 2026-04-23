@@ -20,33 +20,35 @@ public class ReportController {
     private final ExportService exportService;
 
     @GetMapping("/employee-performance")
-    public ResponseEntity<List<EmployeePerformanceResponse>> getEmployeePerformance(
+    public ResponseEntity<org.springframework.data.domain.Page<EmployeePerformanceResponse>> getEmployeePerformance(
             @RequestParam(required = false) String start,
-            @RequestParam(required = false) String end) {
-        return ResponseEntity.ok(reportService.getEmployeePerformance(start, end));
+            @RequestParam(required = false) String end, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(reportService.getEmployeePerformance(start, end, pageable));
     }
 
     @GetMapping("/project-progress")
-    public ResponseEntity<List<ProjectProgressResponse>> getProjectProgress() {
-        return ResponseEntity.ok(reportService.getProjectProgress());
+    public ResponseEntity<org.springframework.data.domain.Page<ProjectProgressResponse>> getProjectProgress(org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(reportService.getProjectProgress(pageable));
     }
 
     @GetMapping("/export")
-    public ResponseEntity<byte[]> exportProjectProgress(
-            @RequestParam(required = false, defaultValue = "excel") String type) throws Exception {
-        List<ProjectProgressResponse> data = reportService.getProjectProgress();
-        if ("pdf".equalsIgnoreCase(type)) {
-            byte[] pdf = exportService.exportProjectProgressToPdf(data);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=project-progress.pdf")
-                    .header("Content-Type", "application/pdf")
-                    .body(pdf);
-        } else {
-            byte[] excel = exportService.exportProjectProgressToExcel(data);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=project-progress.xlsx")
-                    .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                    .body(excel);
-        }
+public ResponseEntity<byte[]> exportProjectProgress(
+        @RequestParam(required = false, defaultValue = "excel") String type,
+        org.springframework.data.domain.Pageable pageable) throws Exception {
+    org.springframework.data.domain.Page<ProjectProgressResponse> page = reportService.getProjectProgress(pageable);
+    List<ProjectProgressResponse> data = page.getContent();
+    if ("pdf".equalsIgnoreCase(type)) {
+        byte[] pdf = exportService.exportProjectProgressToPdf(data);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=project-progress.pdf")
+                .header("Content-Type", "application/pdf")
+                .body(pdf);
+    } else {
+        byte[] excel = exportService.exportProjectProgressToExcel(data);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=project-progress.xlsx")
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excel);
     }
+}
 }

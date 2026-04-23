@@ -58,7 +58,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<java.util.List<learning.tasknode.dto.response.ProjectMemberResponse>> listProjectMembers(@PathVariable Long projectId) {
-        return ResponseEntity.ok(projectService.listMembers(projectId));
+    public ResponseEntity<org.springframework.data.domain.Page<learning.tasknode.dto.response.ProjectMemberResponse>> listProjectMembers(@PathVariable Long projectId, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(projectService.listMembers(projectId, pageable));
     }
 }

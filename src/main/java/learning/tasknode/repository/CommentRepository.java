@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    List<Comment> findByTaskIdAndIsDeletedFalseOrderByCreatedAtAsc(Long taskId);
+    org.springframework.data.domain.Page<Comment> findByTaskIdAndIsDeletedFalseOrderByCreatedAtAsc(Long taskId, org.springframework.data.domain.Pageable pageable);
 }

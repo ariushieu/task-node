@@ -113,8 +113,8 @@ public class ProjectService {
     /**
      * List project members
      */
-    public List<ProjectMemberResponse> listMembers(Long projectId) {
-        return projectMemberRepository.findByProjectIdAndIsDeletedFalse(projectId)
-                .stream().map(projectMemberMapper::toResponse).collect(Collectors.toList());
+    public org.springframework.data.domain.Page<ProjectMemberResponse> listMembers(Long projectId, org.springframework.data.domain.Pageable pageable) {
+        return projectMemberRepository.findByProjectIdAndIsDeletedFalse(projectId, pageable)
+                .map(projectMemberMapper::toResponse);
     }
 }

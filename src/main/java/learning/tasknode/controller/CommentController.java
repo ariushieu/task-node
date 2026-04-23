@@ -16,8 +16,8 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable Long taskId, @RequestParam Long userId) {
-        return ResponseEntity.ok(commentService.getCommentsOfTask(taskId, userId));
+    public ResponseEntity<org.springframework.data.domain.Page<CommentResponse>> getComments(@PathVariable Long taskId, @RequestParam Long userId, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(commentService.getCommentsOfTask(taskId, userId, pageable));
     }
 
     @PostMapping

@@ -4,12 +4,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import learning.tasknode.dto.response.TaskAttachmentResponse;
 import learning.tasknode.service.TaskAttachmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -18,8 +19,8 @@ public class TaskAttachmentController {
     private final TaskAttachmentService attachmentService;
 
     @GetMapping("/tasks/{taskId}/attachments")
-    public ResponseEntity<List<TaskAttachmentResponse>> listTaskAttachments(@PathVariable Long taskId) {
-        return ResponseEntity.ok(attachmentService.listByTask(taskId));
+    public ResponseEntity<Page<TaskAttachmentResponse>> listTaskAttachments(@PathVariable Long taskId, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(attachmentService.listByTask(taskId, pageable));
     }
 
     @PostMapping(value = "/tasks/{taskId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

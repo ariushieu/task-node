@@ -36,9 +36,9 @@ public class TaskAttachmentService {
     @Value("${attachment.upload-dir:uploads}")
     private String uploadDir;
 
-    public List<TaskAttachmentResponse> listByTask(Long taskId) {
-        return attachmentRepository.findByTaskIdAndIsDeletedFalse(taskId).stream()
-                .map(attachmentMapper::toResponse).collect(Collectors.toList());
+    public org.springframework.data.domain.Page<TaskAttachmentResponse> listByTask(Long taskId, org.springframework.data.domain.Pageable pageable) {
+        return attachmentRepository.findByTaskIdAndIsDeletedFalse(taskId, pageable)
+        .map(attachmentMapper::toResponse);
     }
 
     @Transactional

@@ -11,7 +11,10 @@ import java.util.Optional;
 @Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
     @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = :projectId AND pm.isDeleted = false")
-    List<ProjectMember> findByProjectIdAndIsDeletedFalse(Long projectId);
+    java.util.List<ProjectMember> findByProjectIdAndIsDeletedFalse(Long projectId);
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = :projectId AND pm.isDeleted = false")
+    org.springframework.data.domain.Page<ProjectMember> findByProjectIdAndIsDeletedFalse(Long projectId, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = :projectId AND pm.user.id = :userId AND pm.isDeleted = false")
     Optional<ProjectMember> findByProjectIdAndUserId(Long projectId, Long userId);

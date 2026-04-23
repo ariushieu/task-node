@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface TaskAttachmentRepository extends JpaRepository<TaskAttachment, Long> {
-    List<TaskAttachment> findByTaskIdAndIsDeletedFalse(Long taskId);
+    org.springframework.data.domain.Page<TaskAttachment> findByTaskIdAndIsDeletedFalse(Long taskId, org.springframework.data.domain.Pageable pageable);
 }

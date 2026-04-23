@@ -14,8 +14,8 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(@RequestParam Long userId) {
-        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
+    public ResponseEntity<org.springframework.data.domain.Page<NotificationResponse>> getUnreadNotifications(@RequestParam Long userId, org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId, pageable));
     }
 
     @PutMapping("/{id}/read")
