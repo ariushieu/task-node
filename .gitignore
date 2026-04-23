@@ -37,3 +37,11 @@ build/
 .env.*
 
 prompt
+
+# Ignore all markdown documentation except README.md
+BUG_REPORT.md
+CLAUDE.md
+HELP.md
+RULE.md
+WEBSOCKET_DEMO.md
+api.md
