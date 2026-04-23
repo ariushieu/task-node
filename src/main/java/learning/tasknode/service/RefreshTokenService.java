@@ -1,8 +1,8 @@
 package learning.tasknode.service;
 
 import learning.tasknode.exception.TokenRefreshException;
-import learning.tasknode.model.RefreshToken;
-import learning.tasknode.model.User;
+import learning.tasknode.entity.RefreshToken;
+import learning.tasknode.entity.User;
 import learning.tasknode.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

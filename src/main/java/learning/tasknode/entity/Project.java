@@ -1,8 +1,9 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import learning.tasknode.enums.ProjectStatus;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Project extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 150)

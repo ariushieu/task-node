@@ -1,7 +1,8 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "task_attachments")
@@ -9,7 +10,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class TaskAttachment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

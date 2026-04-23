@@ -1,7 +1,8 @@
-package learning.tasknode.model;
+package learning.tasknode.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Department extends BaseEntity {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
