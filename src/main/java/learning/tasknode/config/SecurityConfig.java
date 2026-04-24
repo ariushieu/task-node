@@ -26,12 +26,15 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // Sửa whitelist: Thêm "/" để Nginx có thể "ping" và user vào được trang chủ
     private static final String[] PUBLIC_WHITELIST = {
+            "/", 
             "/api/v1/auth/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
-            "/v3/api-docs.yaml"
+            "/v3/api-docs.yaml",
+            "/favicon.ico"
     };
 
     @Bean
@@ -53,7 +56,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+        
+        // Sửa CORS: Thêm domain thật vào để Frontend không bị lỗi CORS
+        config.setAllowedOrigins(List.of(
+            "http://localhost:5173", 
+            "https://task.qhieu.dev"
+        ));
+        
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization","Content-Type"));
         config.setAllowCredentials(true);
