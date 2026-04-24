@@ -6,7 +6,7 @@ import learning.tasknode.dto.response.UserResponse;
 import learning.tasknode.entity.User;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "department", ignore = true)

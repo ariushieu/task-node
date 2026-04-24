@@ -6,7 +6,7 @@ import learning.tasknode.dto.response.ProjectResponse;
 import learning.tasknode.entity.Project;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {ProjectMemberMapper.class, UserMapper.class})
+@Mapper(componentModel = "spring", uses = {ProjectMemberMapper.class, UserMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProjectMapper {
     @Mapping(target = "owner", ignore = true)
     Project toEntity(ProjectCreateRequest dto);

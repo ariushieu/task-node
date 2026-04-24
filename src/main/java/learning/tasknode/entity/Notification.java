@@ -38,9 +38,11 @@ public class Notification extends BaseEntity {
     @Column(name = "reference_type", length = 50)
     private String referenceType;
 
+    @Builder.Default
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
+    @Builder.Default
     @Column(name = "is_sent_email", nullable = false)
     private Boolean isSentEmail = false;
 }

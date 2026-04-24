@@ -43,6 +43,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 }

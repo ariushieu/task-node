@@ -6,7 +6,7 @@ import learning.tasknode.dto.response.TaskResponse;
 import learning.tasknode.entity.Task;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {TaskAttachmentMapper.class})
+@Mapper(componentModel = "spring", uses = {TaskAttachmentMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TaskMapper {
     @Mapping(target = "project", ignore = true)
     @Mapping(target = "assignee", ignore = true)
