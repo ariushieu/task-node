@@ -56,11 +56,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        
-        // Sửa CORS: Thêm domain thật vào để Frontend không bị lỗi CORS
+
+        // CORS origins: localhost for dev, HTTPS for .dev domain
         config.setAllowedOrigins(List.of(
-            "http://localhost:5173", 
-            "https://task.qhieu.dev"
+            "http://localhost:5173",
+            "https://task.qhieu.dev",
+            "https://qhieu.dev"
         ));
         
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
