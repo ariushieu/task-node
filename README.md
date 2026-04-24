@@ -18,7 +18,7 @@ All endpoints returning collections support Spring Data pagination and sorting:
 
 ```json
 {
-  "content": [
+  "content":
     /* array of objects */
   ],
   "number": 0,
