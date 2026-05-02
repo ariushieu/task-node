@@ -1,6 +1,7 @@
 package learning.tasknode.service;
 
 import learning.tasknode.config.JwtTokenProvider;
+import java.util.List;
 import learning.tasknode.dto.LoginRequest;
 import learning.tasknode.dto.LoginResponse;
 import learning.tasknode.dto.RefreshTokenRequest;
@@ -76,7 +77,7 @@ public class AuthService {
         // Save user reference before deleting tokens to avoid lazy proxy issues
         User user = refreshToken.getUser();
 
-        String accessToken = jwtTokenProvider.generateAccessTokenFromUsername(user.getUsername());
+        String accessToken = jwtTokenProvider.generateAccessTokenFromUsername(user.getUsername(), List.of(user.getRole().name()));
 
         refreshTokenService.deleteByUser(user);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);

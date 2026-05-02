@@ -1,6 +1,6 @@
 package learning.tasknode.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import learning.tasknode.dto.request.ProjectCreateRequest;
 import learning.tasknode.dto.request.ProjectMemberRequest;
 import learning.tasknode.dto.request.ProjectUpdateRequest;
@@ -39,10 +39,12 @@ public class ProjectService {
         return projectMapper.toResponse(project);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProjectResponse> getAllProjects(Pageable pageable) {
         return projectRepository.findAllActive(pageable).map(projectMapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public ProjectResponse getProject(Long id) {
         Project project = projectRepository.findByIdAndIsDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
@@ -113,6 +115,7 @@ public class ProjectService {
     /**
      * List project members
      */
+    @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<ProjectMemberResponse> listMembers(Long projectId, org.springframework.data.domain.Pageable pageable) {
         return projectMemberRepository.findByProjectIdAndIsDeletedFalse(projectId, pageable)
                 .map(projectMemberMapper::toResponse);

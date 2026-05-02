@@ -6,6 +6,7 @@ import learning.tasknode.dto.request.ProjectUpdateRequest;
 import learning.tasknode.dto.response.ProjectResponse;
 import learning.tasknode.service.ProjectService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,8 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProjectResponse>> getAllProjects(Pageable pageable) {
+    public ResponseEntity<Page<ProjectResponse>> getAllProjects(
+            @ParameterObject Pageable pageable) { // Thêm @ParameterObject ở đây
         return ResponseEntity.ok(projectService.getAllProjects(pageable));
     }
 
@@ -58,7 +60,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<org.springframework.data.domain.Page<learning.tasknode.dto.response.ProjectMemberResponse>> listProjectMembers(@PathVariable Long projectId, org.springframework.data.domain.Pageable pageable) {
+    public ResponseEntity<org.springframework.data.domain.Page<learning.tasknode.dto.response.ProjectMemberResponse>> listProjectMembers(@PathVariable Long projectId,  @ParameterObject Pageable pageable) {
         return ResponseEntity.ok(projectService.listMembers(projectId, pageable));
     }
 }
