@@ -1,12 +1,13 @@
 package learning.tasknode.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import learning.tasknode.dto.response.TaskAttachmentResponse;
 import learning.tasknode.service.TaskAttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -26,10 +27,9 @@ public class TaskAttachmentController {
     @PostMapping(value = "/tasks/{taskId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TaskAttachmentResponse> uploadAttachment(
             @PathVariable Long taskId,
-            @RequestPart("file") MultipartFile file,
-            HttpServletRequest req) throws IOException {
-        // Đơn giản: lấy tên user từ header (hoặc security context)
-        String uploader = req.getHeader("X-User") != null ? req.getHeader("X-User") : "system";
+            @RequestPart("file") MultipartFile file) throws IOException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String uploader = auth.getName();
         return ResponseEntity.ok(attachmentService.uploadAttachment(taskId, file, uploader));
     }
 

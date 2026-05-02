@@ -20,7 +20,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Optional<Task> findByIdAndIsDeletedFalse(Long id);
 
     @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.startDate >= :start AND t.endDate <= :end")
-    Page<Task> findByCalendarRange(java.time.LocalDateTime start, java.time.LocalDateTime end, Pageable pageable);
+    Page<Task> findByCalendarRange(java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
     // Thống kê tiến độ dự án
     @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")

@@ -54,13 +54,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Page<UserResponse> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
+        return userRepository.findAllActive(pageable)
             .map(userMapper::toResponse);
     }
 
     @Transactional
     public UserResponse updateUser(Long userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userMapper.updateEntityFromDto(request, user);
         return userMapper.toResponse(userRepository.save(user));
@@ -68,7 +68,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setIsDeleted(true);
         user.setIsActive(false);

@@ -33,9 +33,14 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
+            String username = null;
             if (principal instanceof UserDetails userDetails) {
-                User user = userRepository.findByUsername(userDetails.getUsername())
-                        .orElse(null);
+                username = userDetails.getUsername();
+            } else if (principal instanceof String s) {
+                username = s;
+            }
+            if (username != null) {
+                User user = userRepository.findByUsername(username).orElse(null);
                 if (user != null) {
                     refreshTokenService.deleteByUser(user);
                 }

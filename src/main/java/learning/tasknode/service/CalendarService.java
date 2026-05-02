@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -25,8 +24,8 @@ public class CalendarService {
             throw new BadRequestException("Thiếu tham số ngày bắt đầu hoặc kết thúc!");
         }
         try {
-            LocalDateTime s = LocalDate.parse(start, DF).atStartOfDay();
-            LocalDateTime e = LocalDate.parse(end, DF).atTime(23, 59, 59);
+            LocalDate s = LocalDate.parse(start, DF);
+            LocalDate e = LocalDate.parse(end, DF);
             return taskRepository.findByCalendarRange(s, e, pageable).map(taskMapper::toResponse);
         } catch (Exception ex) {
             throw new BadRequestException("Sai định dạng ngày! Ví dụ đúng: 2026-04-23");

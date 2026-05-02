@@ -30,7 +30,7 @@ public class DepartmentService {
 
     @Transactional(readOnly = true)
     public Page<DepartmentResponse> getAllDepartments(Pageable pageable) {
-        return departmentRepository.findAll(pageable)
+        return departmentRepository.findAllActive(pageable)
             .map(departmentMapper::toResponse);
     }
 }

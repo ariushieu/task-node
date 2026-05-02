@@ -13,7 +13,10 @@ import learning.tasknode.entity.User;
 import learning.tasknode.enums.TaskStatus;
 import learning.tasknode.exception.BadRequestException;
 import learning.tasknode.exception.ResourceNotFoundException;
+import learning.tasknode.entity.ApprovalLog;
+import learning.tasknode.enums.ApprovalAction;
 import learning.tasknode.mapper.TaskMapper;
+import learning.tasknode.repository.ApprovalLogRepository;
 import learning.tasknode.repository.ProjectRepository;
 import learning.tasknode.repository.TaskRepository;
 import learning.tasknode.repository.UserRepository;
@@ -32,6 +35,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ApprovalLogRepository approvalLogRepository;
     private final TaskMapper taskMapper;
 
     @Transactional
@@ -102,9 +106,11 @@ public class TaskService {
     public TaskResponse receiveTask(Long id, TaskReceiveRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        task.setAssignee(user);
+        User currentUser = getCurrentUser();
+        if (!currentUser.getId().equals(request.getUserId())) {
+            throw new BadRequestException("Bạn chỉ có thể nhận task cho chính mình!");
+        }
+        task.setAssignee(currentUser);
         if (task.getStatus() == TaskStatus.NEW || task.getStatus() == TaskStatus.TODO) {
             task.setStatus(TaskStatus.IN_PROGRESS);
         }
@@ -123,6 +129,15 @@ public class TaskService {
             throw new BadRequestException("Công việc phải ở trạng thái chờ duyệt mới có thể phê duyệt!");
         task.setStatus(TaskStatus.APPROVED);
         task.setCompletedAt(LocalDateTime.now());
+
+        User approver = getCurrentUser();
+        ApprovalLog log = ApprovalLog.builder()
+                .task(task)
+                .approver(approver)
+                .action(ApprovalAction.APPROVE)
+                .build();
+        approvalLogRepository.save(log);
+
         return taskMapper.toResponse(taskRepository.save(task));
     }
 
@@ -137,17 +152,30 @@ public class TaskService {
         if (task.getStatus() != TaskStatus.WAITING_APPROVAL)
             throw new BadRequestException("Công việc phải ở trạng thái chờ duyệt mới có thể từ chối!");
         task.setStatus(TaskStatus.REJECTED);
-        String currentDesc = task.getDescription() != null ? task.getDescription() : "";
-        task.setDescription(currentDesc + "\n-- Lý do từ chối: " + request.getReason());
+
+        User approver = getCurrentUser();
+        ApprovalLog log = ApprovalLog.builder()
+                .task(task)
+                .approver(approver)
+                .action(ApprovalAction.REJECT)
+                .reason(request.getReason())
+                .build();
+        approvalLogRepository.save(log);
+
         return taskMapper.toResponse(taskRepository.save(task));
     }
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
         if (principal instanceof UserDetails userDetails) {
-            return userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
+            username = userDetails.getUsername();
+        } else if (principal instanceof String s) {
+            username = s;
+        } else {
+            throw new BadRequestException("Không xác định được người dùng hiện tại!");
         }
-        throw new BadRequestException("Không xác định được người dùng hiện tại!");
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
     }
 }

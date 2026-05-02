@@ -16,7 +16,7 @@ public class AuditLogService {
     private final AuditLogMapper auditLogMapper;
 
     public Page<AuditLogResponse> getAuditLogs(Pageable pageable) {
-        return auditLogRepository.findAll(pageable)
+        return auditLogRepository.findAllActive(pageable)
                 .map(auditLogMapper::toResponse);
     }
 }

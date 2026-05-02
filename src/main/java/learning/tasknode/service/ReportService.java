@@ -44,9 +44,9 @@ public class ReportService {
                         .build());
             }
         }
-        int start = (int) pageable.getOffset();
-int end = Math.min((start + pageable.getPageSize()), list.size());
-return new org.springframework.data.domain.PageImpl<>(list.subList(start, end), pageable, list.size());
+        int startIdx = Math.min((int) pageable.getOffset(), list.size());
+int endIdx = Math.min((startIdx + pageable.getPageSize()), list.size());
+return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, endIdx), pageable, list.size());
     }
 
     public org.springframework.data.domain.Page<EmployeePerformanceResponse> getEmployeePerformance(String start, String end, org.springframework.data.domain.Pageable pageable) {
@@ -76,7 +76,7 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(start, end), 
                         .build());
             }
         }
-        int startIdx = (int) pageable.getOffset();
+        int startIdx = Math.min((int) pageable.getOffset(), result.size());
 int endIdx = Math.min((startIdx + pageable.getPageSize()), result.size());
 return new org.springframework.data.domain.PageImpl<>(result.subList(startIdx, endIdx), pageable, result.size());
     }
