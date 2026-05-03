@@ -15,4 +15,6 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     @Query("SELECT d FROM Department d WHERE d.id = :id AND d.isDeleted = false")
     java.util.Optional<Department> findByIdAndIsDeletedFalse(Long id);
+
+    java.util.Optional<Department> findByManagerIdAndIsDeletedFalse(Long managerId);
 }

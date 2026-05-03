@@ -74,13 +74,8 @@ public class TaskService {
 
     public Page<TaskResponse> getMyDepartmentTasks(Pageable pageable) {
         User currentUser = getCurrentUser();
-        if (currentUser.getDepartment() == null) {
-            return Page.empty(pageable);
-        }
-        Department dept = currentUser.getDepartment();
-        if (dept.getManager() == null || !dept.getManager().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("Bạn không phải trưởng phòng ban nào!");
-        }
+        Department dept = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId())
+                .orElseThrow(() -> new BadRequestException("Bạn không phải trưởng phòng ban nào!"));
         return taskRepository.findByDepartmentIdAndIsDeletedFalse(dept.getId(), pageable)
                 .map(taskMapper::toResponse);
     }
@@ -95,7 +90,9 @@ public class TaskService {
         if (taskDept == null) {
             throw new BadRequestException("Task chưa được giao cho phòng ban nào!");
         }
-        if (taskDept.getManager() == null || !taskDept.getManager().getId().equals(currentUser.getId())) {
+        Department managedDept = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId())
+                .orElseThrow(() -> new BadRequestException("Bạn không phải trưởng phòng ban nào!"));
+        if (!managedDept.getId().equals(taskDept.getId())) {
             throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
         }
 
