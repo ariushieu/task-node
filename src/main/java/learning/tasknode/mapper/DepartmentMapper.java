@@ -15,6 +15,6 @@ public interface DepartmentMapper {
 
     @Mapping(target = "managerId", source = "manager.id")
     @Mapping(target = "managerName", source = "manager.fullName")
-    @Mapping(target = "memberCount", expression = "java(entity.getMembers() != null ? (int) entity.getMembers().stream().filter(m -> !Boolean.TRUE.equals(m.getIsDeleted())).count() : 0)")
+    @Mapping(target = "memberCount", ignore = true)
     DepartmentResponse toResponse(Department entity);
 }

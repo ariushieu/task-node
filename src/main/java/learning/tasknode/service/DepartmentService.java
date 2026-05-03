@@ -35,13 +35,13 @@ public class DepartmentService {
             department.setManager(manager);
         }
         Department saved = departmentRepository.save(department);
-        return departmentMapper.toResponse(saved);
+        return toResponseWithMemberCount(saved);
     }
 
     @Transactional(readOnly = true)
     public Page<DepartmentResponse> getAllDepartments(Pageable pageable) {
         return departmentRepository.findAllActive(pageable)
-            .map(departmentMapper::toResponse);
+            .map(this::toResponseWithMemberCount);
     }
 
     @Transactional
@@ -55,7 +55,13 @@ public class DepartmentService {
                     .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
             department.setManager(manager);
         }
-        return departmentMapper.toResponse(departmentRepository.save(department));
+        return toResponseWithMemberCount(departmentRepository.save(department));
+    }
+
+    private DepartmentResponse toResponseWithMemberCount(Department department) {
+        DepartmentResponse response = departmentMapper.toResponse(department);
+        response.setMemberCount((int) userRepository.countByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(department.getId()));
+        return response;
     }
 
     @Transactional

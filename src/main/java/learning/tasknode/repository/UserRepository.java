@@ -32,4 +32,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByIsDeletedFalse();
 
     java.util.List<User> findByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(Long departmentId);
+
+    long countByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(Long departmentId);
 }
