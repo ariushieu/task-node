@@ -1,6 +1,5 @@
 package learning.tasknode.service;
 
-import jakarta.transaction.Transactional;
 import learning.tasknode.dto.request.TaskCreateRequest;
 import learning.tasknode.dto.request.TaskStatusUpdateRequest;
 import learning.tasknode.dto.request.TaskUpdateRequest;
@@ -26,11 +25,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
