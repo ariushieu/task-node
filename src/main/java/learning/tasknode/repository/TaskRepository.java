@@ -37,4 +37,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByStatusAndIsDeletedFalse(learning.tasknode.enums.TaskStatus status);
 
     long countByIsDeletedFalse();
+
+    @Query("SELECT DISTINCT t.assignee FROM Task t WHERE t.project.id = :projectId AND t.assignee IS NOT NULL AND t.isDeleted = false")
+    List<learning.tasknode.entity.User> findDistinctAssigneesByProjectId(Long projectId);
+
+    @Query("SELECT COUNT(DISTINCT t.assignee) FROM Task t WHERE t.project.id = :projectId AND t.assignee IS NOT NULL AND t.isDeleted = false")
+    int countDistinctAssigneesByProjectId(Long projectId);
 }

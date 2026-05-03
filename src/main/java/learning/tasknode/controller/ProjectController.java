@@ -50,23 +50,8 @@ public class ProjectController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{projectId}/members")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<learning.tasknode.dto.response.ProjectMemberResponse> addMemberToProject(
-            @PathVariable Long projectId,
-            @Valid @RequestBody learning.tasknode.dto.request.ProjectMemberRequest request) {
-        return ResponseEntity.ok(projectService.addMember(projectId, request));
-    }
-
-    @DeleteMapping("/{projectId}/members/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Void> removeMemberFromProject(@PathVariable Long projectId, @PathVariable Long userId) {
-        projectService.removeMember(projectId, userId);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<org.springframework.data.domain.Page<learning.tasknode.dto.response.ProjectMemberResponse>> listProjectMembers(@PathVariable Long projectId,  @ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(projectService.listMembers(projectId, pageable));
+    public ResponseEntity<java.util.List<learning.tasknode.dto.response.UserResponse>> listProjectMembers(@PathVariable Long projectId) {
+        return ResponseEntity.ok(projectService.getProjectAssignees(projectId));
     }
 }
