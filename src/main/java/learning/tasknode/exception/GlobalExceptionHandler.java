@@ -2,6 +2,7 @@ package learning.tasknode.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
@@ -29,6 +30,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenRefreshException.class)
     public ResponseEntity<Map<String, Object>> handleTokenRefresh(TokenRefreshException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

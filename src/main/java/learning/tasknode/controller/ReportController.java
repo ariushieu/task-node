@@ -5,6 +5,7 @@ import learning.tasknode.service.ReportService;
 import learning.tasknode.service.ExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ public class ReportController {
     private final ExportService exportService;
 
     @GetMapping("/employee-performance")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<org.springframework.data.domain.Page<EmployeePerformanceResponse>> getEmployeePerformance(
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end, org.springframework.data.domain.Pageable pageable) {
@@ -27,11 +29,13 @@ public class ReportController {
     }
 
     @GetMapping("/project-progress")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<org.springframework.data.domain.Page<ProjectProgressResponse>> getProjectProgress(org.springframework.data.domain.Pageable pageable) {
         return ResponseEntity.ok(reportService.getProjectProgress(pageable));
     }
 
     @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 public ResponseEntity<byte[]> exportProjectProgress(
         @RequestParam(required = false, defaultValue = "excel") String type,
         org.springframework.data.domain.Pageable pageable) throws Exception {

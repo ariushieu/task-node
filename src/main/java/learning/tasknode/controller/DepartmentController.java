@@ -6,6 +6,7 @@ import learning.tasknode.entity.Department;
 import learning.tasknode.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +16,7 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<learning.tasknode.dto.response.DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentCreateRequest request) {
         return ResponseEntity.ok(departmentService.createDepartment(request));
     }
