@@ -33,6 +33,19 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getMyTasks(pageable));
     }
 
+    @GetMapping("/department")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<Page<TaskResponse>> getDepartmentTasks(Pageable pageable) {
+        return ResponseEntity.ok(taskService.getMyDepartmentTasks(pageable));
+    }
+
+    @PostMapping("/{id}/assign")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<TaskResponse> assignTask(@PathVariable Long id,
+                                                   @Valid @RequestBody TaskAssignRequest request) {
+        return ResponseEntity.ok(taskService.assignTask(id, request));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.getTask(id));

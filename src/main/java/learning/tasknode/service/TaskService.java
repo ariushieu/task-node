@@ -1,11 +1,13 @@
 package learning.tasknode.service;
 
+import learning.tasknode.dto.request.TaskAssignRequest;
 import learning.tasknode.dto.request.TaskCreateRequest;
 import learning.tasknode.dto.request.TaskStatusUpdateRequest;
 import learning.tasknode.dto.request.TaskUpdateRequest;
 import learning.tasknode.dto.request.TaskReceiveRequest;
 import learning.tasknode.dto.request.TaskRejectRequest;
 import learning.tasknode.dto.response.TaskResponse;
+import learning.tasknode.entity.Department;
 import learning.tasknode.entity.Task;
 import learning.tasknode.entity.Project;
 import learning.tasknode.entity.User;
@@ -16,6 +18,7 @@ import learning.tasknode.entity.ApprovalLog;
 import learning.tasknode.enums.ApprovalAction;
 import learning.tasknode.mapper.TaskMapper;
 import learning.tasknode.repository.ApprovalLogRepository;
+import learning.tasknode.repository.DepartmentRepository;
 import learning.tasknode.repository.ProjectRepository;
 import learning.tasknode.repository.TaskRepository;
 import learning.tasknode.repository.UserRepository;
@@ -35,6 +38,7 @@ import java.time.LocalDateTime;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final ApprovalLogRepository approvalLogRepository;
     private final TaskMapper taskMapper;
@@ -44,18 +48,15 @@ public class TaskService {
         Project project = projectRepository.findByIdAndIsDeletedFalse(request.getProjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
-        User createdBy = getCurrentUser();
+        Department department = departmentRepository.findByIdAndIsDeletedFalse(request.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
-        User assignee = null;
-        if (request.getAssigneeId() != null) {
-            assignee = userRepository.findById(request.getAssigneeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));
-        }
+        User createdBy = getCurrentUser();
 
         Task task = taskMapper.toEntity(request);
         task.setProject(project);
+        task.setDepartment(department);
         task.setCreatedBy(createdBy);
-        if (assignee != null) task.setAssignee(assignee);
         if (task.getStatus() == null) task.setStatus(TaskStatus.NEW);
 
         return taskMapper.toResponse(taskRepository.save(task));
@@ -69,6 +70,46 @@ public class TaskService {
         User currentUser = getCurrentUser();
         return taskRepository.findByAssigneeIdAndIsDeletedFalse(currentUser.getId(), pageable)
                 .map(taskMapper::toResponse);
+    }
+
+    public Page<TaskResponse> getMyDepartmentTasks(Pageable pageable) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getDepartment() == null) {
+            return Page.empty(pageable);
+        }
+        Department dept = currentUser.getDepartment();
+        if (dept.getManager() == null || !dept.getManager().getId().equals(currentUser.getId())) {
+            throw new BadRequestException("Bạn không phải trưởng phòng ban nào!");
+        }
+        return taskRepository.findByDepartmentIdAndIsDeletedFalse(dept.getId(), pageable)
+                .map(taskMapper::toResponse);
+    }
+
+    @Transactional
+    public TaskResponse assignTask(Long taskId, TaskAssignRequest request) {
+        Task task = taskRepository.findByIdAndIsDeletedFalse(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
+        User currentUser = getCurrentUser();
+        Department taskDept = task.getDepartment();
+        if (taskDept == null) {
+            throw new BadRequestException("Task chưa được giao cho phòng ban nào!");
+        }
+        if (taskDept.getManager() == null || !taskDept.getManager().getId().equals(currentUser.getId())) {
+            throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
+        }
+
+        User assignee = userRepository.findByIdAndIsDeletedFalse(request.getAssigneeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Nhân viên không tồn tại!"));
+        if (assignee.getDepartment() == null || !assignee.getDepartment().getId().equals(taskDept.getId())) {
+            throw new BadRequestException("Nhân viên không thuộc phòng ban phụ trách task này!");
+        }
+
+        task.setAssignee(assignee);
+        if (task.getStatus() == TaskStatus.NEW) {
+            task.setStatus(TaskStatus.TODO);
+        }
+        return taskMapper.toResponse(taskRepository.save(task));
     }
 
     public TaskResponse getTask(Long id) {

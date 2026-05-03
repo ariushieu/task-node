@@ -29,6 +29,9 @@ public class TaskResponse {
     private Long projectId;
     private String projectName;
 
+    private Long departmentId;
+    private String departmentName;
+
     private Long assigneeId;
     private String assigneeName;
     private String assigneeAvatarUrl;

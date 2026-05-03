@@ -19,6 +19,7 @@ import java.util.Set;
         @Index(name = "idx_task_priority", columnList = "priority"),
         @Index(name = "idx_task_assignee", columnList = "assignee_id"),
         @Index(name = "idx_task_project", columnList = "project_id"),
+        @Index(name = "idx_task_department", columnList = "department_id"),
         @Index(name = "idx_task_start_date", columnList = "start_date"),
         @Index(name = "idx_task_end_date", columnList = "end_date")
 })
@@ -54,6 +55,10 @@ public class Task extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")

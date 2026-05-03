@@ -32,6 +32,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Page<Task> findByAssigneeIdAndIsDeletedFalse(Long assigneeId, Pageable pageable);
 
+    Page<Task> findByDepartmentIdAndIsDeletedFalse(Long departmentId, Pageable pageable);
+
     long countByStatusAndIsDeletedFalse(learning.tasknode.enums.TaskStatus status);
 
     long countByIsDeletedFalse();

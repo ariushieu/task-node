@@ -30,4 +30,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByRole(learning.tasknode.enums.UserRole role);
 
     long countByIsDeletedFalse();
+
+    java.util.List<User> findByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(Long departmentId);
 }

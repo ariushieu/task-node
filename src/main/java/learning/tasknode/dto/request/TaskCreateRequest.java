@@ -38,7 +38,8 @@ public class TaskCreateRequest {
     @NotNull(message = "Project ID is required")
     private Long projectId;
 
-    private Long assigneeId;
+    @NotNull(message = "Department ID is required")
+    private Long departmentId;
 
     private Long parentTaskId;
 
