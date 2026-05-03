@@ -10,6 +10,7 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DepartmentMapper {
+    @Mapping(target = "manager", ignore = true)
     Department toEntity(DepartmentCreateRequest dto);
 
     @Mapping(target = "managerId", source = "manager.id")
