@@ -73,6 +73,12 @@ public class UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<UserResponse> getUsersByDepartment(Long departmentId) {
+        return userRepository.findByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(departmentId)
+                .stream().map(userMapper::toResponse).toList();
+    }
+
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)

@@ -3,9 +3,6 @@ package learning.tasknode.controller;
 import jakarta.validation.Valid;
 import learning.tasknode.dto.request.UserCreateRequest;
 import learning.tasknode.dto.response.UserResponse;
-import learning.tasknode.entity.User;
-import learning.tasknode.mapper.UserMapper;
-import learning.tasknode.repository.UserRepository;
 import learning.tasknode.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -50,7 +45,6 @@ public class UserController {
     @GetMapping("/department/{departmentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<java.util.List<UserResponse>> getUsersByDepartment(@PathVariable Long departmentId) {
-        java.util.List<User> users = userRepository.findByDepartmentIdAndIsDeletedFalseAndIsActiveTrue(departmentId);
-        return ResponseEntity.ok(users.stream().map(userMapper::toResponse).toList());
+        return ResponseEntity.ok(userService.getUsersByDepartment(departmentId));
     }
 }
