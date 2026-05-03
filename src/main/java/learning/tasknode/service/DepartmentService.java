@@ -54,6 +54,8 @@ public class DepartmentService {
             User manager = userRepository.findByIdAndIsDeletedFalse(request.getManagerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
             department.setManager(manager);
+        } else {
+            department.setManager(null);
         }
         return toResponseWithMemberCount(departmentRepository.save(department));
     }
