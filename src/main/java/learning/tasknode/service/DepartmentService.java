@@ -33,7 +33,6 @@ public class DepartmentService {
             User manager = userRepository.findByIdAndIsDeletedFalse(request.getManagerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
             department.setManager(manager);
-            manager.setDepartment(department);
         }
         Department saved = departmentRepository.save(department);
         return departmentMapper.toResponse(saved);
@@ -55,8 +54,6 @@ public class DepartmentService {
             User manager = userRepository.findByIdAndIsDeletedFalse(request.getManagerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
             department.setManager(manager);
-            manager.setDepartment(department);
-            userRepository.save(manager);
         }
         return departmentMapper.toResponse(departmentRepository.save(department));
     }
