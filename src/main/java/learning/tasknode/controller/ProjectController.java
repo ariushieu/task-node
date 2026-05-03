@@ -10,6 +10,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectCreateRequest request) {
         return ResponseEntity.ok(projectService.createProject(request));
     }
@@ -35,18 +37,21 @@ public class ProjectController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id,
                                                          @Valid @RequestBody ProjectUpdateRequest request) {
         return ResponseEntity.ok(projectService.updateProject(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{projectId}/members")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<learning.tasknode.dto.response.ProjectMemberResponse> addMemberToProject(
             @PathVariable Long projectId,
             @Valid @RequestBody learning.tasknode.dto.request.ProjectMemberRequest request) {
@@ -54,6 +59,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{projectId}/members/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> removeMemberFromProject(@PathVariable Long projectId, @PathVariable Long userId) {
         projectService.removeMember(projectId, userId);
         return ResponseEntity.noContent().build();

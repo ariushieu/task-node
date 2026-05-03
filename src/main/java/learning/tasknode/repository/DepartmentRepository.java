@@ -12,4 +12,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     @Query("SELECT d FROM Department d WHERE d.isDeleted = false")
     Page<Department> findAllActive(Pageable pageable);
+
+    @Query("SELECT d FROM Department d WHERE d.id = :id AND d.isDeleted = false")
+    java.util.Optional<Department> findByIdAndIsDeletedFalse(Long id);
 }
