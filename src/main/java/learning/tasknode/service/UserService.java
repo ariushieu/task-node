@@ -68,6 +68,8 @@ public class UserService {
             Department dept = departmentRepository.findByIdAndIsDeletedFalse(request.getDepartmentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
             user.setDepartment(dept);
+        } else {
+            user.setDepartment(null);
         }
 
         return userMapper.toResponse(userRepository.save(user));
