@@ -28,4 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByRole(learning.tasknode.enums.UserRole role);
+
+    long countByIsDeletedFalse();
 }

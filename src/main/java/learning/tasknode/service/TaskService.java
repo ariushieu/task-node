@@ -64,6 +64,12 @@ public class TaskService {
         return taskRepository.findAllActive(pageable).map(taskMapper::toResponse);
     }
 
+    public Page<TaskResponse> getMyTasks(Pageable pageable) {
+        User currentUser = getCurrentUser();
+        return taskRepository.findByAssigneeIdAndIsDeletedFalse(currentUser.getId(), pageable)
+                .map(taskMapper::toResponse);
+    }
+
     public TaskResponse getTask(Long id) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));

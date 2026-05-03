@@ -26,6 +26,11 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getAllTasks(pageable));
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<Page<TaskResponse>> getMyTasks(Pageable pageable) {
+        return ResponseEntity.ok(taskService.getMyTasks(pageable));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.getTask(id));

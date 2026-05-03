@@ -29,4 +29,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     // Thống kê hiệu suất theo từng nhân viên trong khoảng thời gian
     @Query("SELECT t.assignee.id, COUNT(t), SUM(CASE WHEN t.status='DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='REJECTED' THEN 1 ELSE 0 END) FROM Task t WHERE t.assignee IS NOT NULL AND t.isDeleted = false AND (:start IS NULL OR t.createdAt >= :start) AND (:end IS NULL OR t.createdAt <= :end) GROUP BY t.assignee.id")
     List<Object[]> getEmployeePerformance(LocalDateTime start, LocalDateTime end);
+
+    Page<Task> findByAssigneeIdAndIsDeletedFalse(Long assigneeId, Pageable pageable);
+
+    long countByStatusAndIsDeletedFalse(learning.tasknode.enums.TaskStatus status);
+
+    long countByIsDeletedFalse();
 }
