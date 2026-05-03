@@ -63,6 +63,13 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userMapper.updateEntityFromDto(request, user);
+
+        if (request.getDepartmentId() != null) {
+            Department dept = departmentRepository.findByIdAndIsDeletedFalse(request.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+            user.setDepartment(dept);
+        }
+
         return userMapper.toResponse(userRepository.save(user));
     }
 
