@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -74,9 +75,12 @@ public class TaskService {
 
     public Page<TaskResponse> getMyDepartmentTasks(Pageable pageable) {
         User currentUser = getCurrentUser();
-        Department dept = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId())
-                .orElseThrow(() -> new BadRequestException("Bạn không phải trưởng phòng ban nào!"));
-        return taskRepository.findByDepartmentIdAndIsDeletedFalse(dept.getId(), pageable)
+        List<Department> departments = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId());
+        if (departments.isEmpty()) {
+            throw new BadRequestException("Bạn không phải trưởng phòng ban nào!");
+        }
+        List<Long> deptIds = departments.stream().map(Department::getId).toList();
+        return taskRepository.findByDepartmentIdInAndIsDeletedFalse(deptIds, pageable)
                 .map(taskMapper::toResponse);
     }
 
@@ -90,9 +94,13 @@ public class TaskService {
         if (taskDept == null) {
             throw new BadRequestException("Task chưa được giao cho phòng ban nào!");
         }
-        Department managedDept = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId())
-                .orElseThrow(() -> new BadRequestException("Bạn không phải trưởng phòng ban nào!"));
-        if (!managedDept.getId().equals(taskDept.getId())) {
+        List<Department> managedDepts = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId());
+        if (managedDepts.isEmpty()) {
+            throw new BadRequestException("Bạn không phải trưởng phòng ban nào!");
+        }
+        boolean managesTaskDept = managedDepts.stream()
+                .anyMatch(d -> d.getId().equals(taskDept.getId()));
+        if (!managesTaskDept) {
             throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
         }
 
