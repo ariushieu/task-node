@@ -16,7 +16,7 @@ public interface ProjectMapper {
 
     @Mapping(target = "ownerId", source = "owner.id")
     @Mapping(target = "ownerName", source = "owner.fullName")
-    @Mapping(target = "memberCount", expression = "java(entity.getMembers() != null ? entity.getMembers().size() : 0)")
-    @Mapping(target = "taskCount", expression = "java(entity.getTasks() != null ? entity.getTasks().size() : 0)")
+    @Mapping(target = "memberCount", expression = "java(entity.getMembers() != null ? (int) entity.getMembers().stream().filter(m -> !Boolean.TRUE.equals(m.getIsDeleted())).count() : 0)")
+    @Mapping(target = "taskCount", expression = "java(entity.getTasks() != null ? (int) entity.getTasks().stream().filter(t -> !Boolean.TRUE.equals(t.getIsDeleted())).count() : 0)")
     ProjectResponse toResponse(Project entity);
 }
