@@ -22,12 +22,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.startDate >= :start AND t.endDate <= :end")
     Page<Task> findByCalendarRange(java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
-    @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' OR t.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END), (SELECT AVG(ta.progress) FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.project.id = t.project.id AND ta.task.isDeleted = false) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")
+    @Query(value = "SELECT t.project_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.end_date < CURDATE() THEN 1 ELSE 0 END) FROM tasks t WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
     List<Object[]> getProjectProgressStats();
 
-    // Thống kê hiệu suất theo từng nhân viên trong khoảng thời gian
-    @Query("SELECT ta.user.id, COUNT(ta), SUM(CASE WHEN ta.task.status='DONE' OR ta.task.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN ta.task.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN ta.task.status='REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.isDeleted = false AND (:start IS NULL OR ta.task.createdAt >= :start) AND (:end IS NULL OR ta.task.createdAt <= :end) GROUP BY ta.user.id")
-    List<Object[]> getEmployeePerformance(LocalDateTime start, LocalDateTime end);
+    @Query(value = "SELECT t.project_id, AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
+    List<Object[]> getAvgProgressByProject();
+
+    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false GROUP BY ta.user_id", nativeQuery = true)
+    List<Object[]> getEmployeePerformanceAll();
+
+    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false AND t.created_at >= :start AND t.created_at <= :end GROUP BY ta.user_id", nativeQuery = true)
+    List<Object[]> getEmployeePerformanceFiltered(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT DISTINCT ta.task FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.user.id = :userId AND ta.task.isDeleted = false")
     Page<Task> findByAssigneeUserId(Long userId, Pageable pageable);

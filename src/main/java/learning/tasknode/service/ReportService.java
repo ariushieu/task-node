@@ -23,6 +23,12 @@ public class ReportService {
 
     public org.springframework.data.domain.Page<ProjectProgressResponse> getProjectProgress(org.springframework.data.domain.Pageable pageable) {
         List<Object[]> stats = taskRepository.getProjectProgressStats();
+        java.util.Map<Long, Double> avgProgressMap = new java.util.HashMap<>();
+        for (Object[] row : taskRepository.getAvgProgressByProject()) {
+            Long pid = ((Number) row[0]).longValue();
+            Double avg = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+            avgProgressMap.put(pid, avg);
+        }
         List<ProjectProgressResponse> list = new ArrayList<>();
         for (Object[] row : stats) {
             Long projectId = ((Number) row[0]).longValue();
@@ -33,7 +39,6 @@ public class ReportService {
             Project p = projectRepository.findById(projectId).orElse(null);
             if (p != null) {
                 double percent = (total != 0) ? (done * 100.0 / total) : 0.0;
-                Double avgProg = row[5] != null ? ((Number) row[5]).doubleValue() : 0.0;
                 list.add(ProjectProgressResponse.builder()
                         .projectId(projectId)
                         .projectName(p.getName())
@@ -42,7 +47,7 @@ public class ReportService {
                         .inProgressTasks(inProgress.intValue())
                         .overdueTasks(overdue.intValue())
                         .percentCompleted(percent)
-                        .avgProgress(avgProg)
+                        .avgProgress(avgProgressMap.getOrDefault(projectId, 0.0))
                         .build());
             }
         }
@@ -56,7 +61,9 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, end
         LocalDateTime endTime = null;
         try { if (start != null) startTime = LocalDateTime.parse(start); } catch(Exception ignore) {}
         try { if (end != null) endTime = LocalDateTime.parse(end); } catch(Exception ignore) {}
-        List<Object[]> stats = taskRepository.getEmployeePerformance(startTime, endTime);
+        List<Object[]> stats = (startTime != null && endTime != null)
+                ? taskRepository.getEmployeePerformanceFiltered(startTime, endTime)
+                : taskRepository.getEmployeePerformanceAll();
         List<EmployeePerformanceResponse> result = new ArrayList<>();
         for (Object[] row : stats) {
             Long userId = ((Number) row[0]).longValue();
