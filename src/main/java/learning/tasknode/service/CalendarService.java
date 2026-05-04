@@ -68,12 +68,17 @@ public class CalendarService {
                 .map(TaskProgressLog::getProgress)
                 .orElse(0);
 
+        LocalDate today = LocalDate.now();
         List<DailyProgressResponse> result = new ArrayList<>();
         for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
             if (logMap.containsKey(d)) {
                 carryProgress = logMap.get(d);
             }
-            result.add(DailyProgressResponse.builder().date(d).progress(carryProgress).build());
+            if (d.isAfter(today)) {
+                result.add(DailyProgressResponse.builder().date(d).progress(null).build());
+            } else {
+                result.add(DailyProgressResponse.builder().date(d).progress(carryProgress).build());
+            }
         }
         return result;
     }
