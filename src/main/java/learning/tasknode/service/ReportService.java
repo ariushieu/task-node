@@ -9,6 +9,7 @@ import learning.tasknode.repository.TaskRepository;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReportService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
