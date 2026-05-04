@@ -61,8 +61,16 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, end
     public org.springframework.data.domain.Page<EmployeePerformanceResponse> getEmployeePerformance(String start, String end, org.springframework.data.domain.Pageable pageable) {
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
-        try { if (start != null) startTime = LocalDateTime.parse(start); } catch(Exception ignore) {}
-        try { if (end != null) endTime = LocalDateTime.parse(end); } catch(Exception ignore) {}
+        if (start != null && !start.isBlank()) {
+            try { startTime = LocalDateTime.parse(start); } catch (Exception e) {
+                throw new learning.tasknode.exception.BadRequestException("Ngày bắt đầu không hợp lệ: " + start);
+            }
+        }
+        if (end != null && !end.isBlank()) {
+            try { endTime = LocalDateTime.parse(end); } catch (Exception e) {
+                throw new learning.tasknode.exception.BadRequestException("Ngày kết thúc không hợp lệ: " + end);
+            }
+        }
         List<Object[]> stats = (startTime != null && endTime != null)
                 ? taskRepository.getEmployeePerformanceFiltered(startTime, endTime)
                 : taskRepository.getEmployeePerformanceAll();

@@ -2,7 +2,6 @@ package learning.tasknode.controller;
 
 import jakarta.validation.Valid;
 import learning.tasknode.dto.request.*;
-import learning.tasknode.dto.request.TaskProgressUpdateRequest;
 import learning.tasknode.dto.response.TaskResponse;
 import learning.tasknode.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +24,7 @@ public class TaskController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Page<TaskResponse>> getAllTasks(Pageable pageable) {
         return ResponseEntity.ok(taskService.getAllTasks(pageable));
     }
@@ -85,12 +85,13 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/receive")
-    public ResponseEntity<TaskResponse> receiveTask(@PathVariable Long id,
-                                                   @Valid @RequestBody TaskReceiveRequest request) {
-        return ResponseEntity.ok(taskService.receiveTask(id, request));
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<TaskResponse> receiveTask(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.receiveTask(id));
     }
 
     @PutMapping("/{id}/progress")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<TaskResponse> updateProgress(@PathVariable Long id,
                                                        @Valid @RequestBody TaskProgressUpdateRequest request) {
         return ResponseEntity.ok(taskService.updateMyProgress(id, request));

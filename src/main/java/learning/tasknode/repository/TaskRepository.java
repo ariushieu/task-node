@@ -22,16 +22,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT DISTINCT ta.task FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.user.id = :userId AND ta.task.isDeleted = false AND ta.task.startDate <= :end AND ta.task.endDate >= :start")
     Page<Task> findCalendarTasksByUser(Long userId, java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
-    @Query(value = "SELECT t.project_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.end_date < CURDATE() THEN 1 ELSE 0 END) FROM tasks t WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
+    @Query(value = "SELECT t.project_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','IN_REVIEW','WAITING_APPROVAL','TODO','NEW') AND t.end_date < CURDATE() THEN 1 ELSE 0 END) FROM tasks t WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
     List<Object[]> getProjectProgressStats();
 
     @Query(value = "SELECT t.project_id, AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
     List<Object[]> getAvgProgressByProject();
 
-    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false GROUP BY ta.user_id", nativeQuery = true)
+    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false GROUP BY ta.user_id", nativeQuery = true)
     List<Object[]> getEmployeePerformanceAll();
 
-    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false AND t.created_at >= :start AND t.created_at <= :end GROUP BY ta.user_id", nativeQuery = true)
+    @Query(value = "SELECT ta.user_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM task_assignees ta JOIN tasks t ON ta.task_id = t.id WHERE t.is_deleted = false AND t.created_at >= :start AND t.created_at <= :end GROUP BY ta.user_id", nativeQuery = true)
     List<Object[]> getEmployeePerformanceFiltered(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT DISTINCT ta.task FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.user.id = :userId AND ta.task.isDeleted = false")

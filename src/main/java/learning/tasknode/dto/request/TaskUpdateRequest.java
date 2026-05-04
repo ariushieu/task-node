@@ -2,7 +2,6 @@ package learning.tasknode.dto.request;
 
 import jakarta.validation.constraints.Size;
 import learning.tasknode.enums.TaskPriority;
-import learning.tasknode.enums.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,8 +20,6 @@ public class TaskUpdateRequest {
     private String title;
 
     private String description;
-
-    private TaskStatus status;
 
     private TaskPriority priority;
 

@@ -5,7 +5,6 @@ import learning.tasknode.dto.request.TaskCreateRequest;
 import learning.tasknode.dto.request.TaskProgressUpdateRequest;
 import learning.tasknode.dto.request.TaskStatusUpdateRequest;
 import learning.tasknode.dto.request.TaskUpdateRequest;
-import learning.tasknode.dto.request.TaskReceiveRequest;
 import learning.tasknode.dto.request.TaskRejectRequest;
 import learning.tasknode.dto.response.TaskResponse;
 import learning.tasknode.entity.Department;
@@ -52,6 +51,16 @@ public class TaskService {
     private final ApprovalLogRepository approvalLogRepository;
     private final TaskMapper taskMapper;
 
+    private static final java.util.Map<TaskStatus, java.util.Set<TaskStatus>> VALID_TRANSITIONS = java.util.Map.of(
+        TaskStatus.NEW, java.util.Set.of(TaskStatus.TODO),
+        TaskStatus.TODO, java.util.Set.of(TaskStatus.IN_PROGRESS),
+        TaskStatus.IN_PROGRESS, java.util.Set.of(TaskStatus.IN_REVIEW, TaskStatus.WAITING_APPROVAL),
+        TaskStatus.IN_REVIEW, java.util.Set.of(TaskStatus.IN_PROGRESS, TaskStatus.WAITING_APPROVAL),
+        TaskStatus.WAITING_APPROVAL, java.util.Set.of(TaskStatus.DONE, TaskStatus.REJECTED),
+        TaskStatus.REJECTED, java.util.Set.of(TaskStatus.IN_PROGRESS),
+        TaskStatus.DONE, java.util.Set.of()
+    );
+
     @Transactional
     public TaskResponse createTask(TaskCreateRequest request) {
         Project project = projectRepository.findByIdAndIsDeletedFalse(request.getProjectId())
@@ -66,7 +75,7 @@ public class TaskService {
         task.setProject(project);
         task.setDepartment(department);
         task.setCreatedBy(createdBy);
-        if (task.getStatus() == null) task.setStatus(TaskStatus.NEW);
+        task.setStatus(TaskStatus.NEW);
 
         return toResponseWithAssignees(taskRepository.save(task));
     }
@@ -112,9 +121,18 @@ public class TaskService {
             throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
         }
 
-        task.getAssignees().clear();
+        // Remove assignees not in the new list
+        java.util.Set<Long> newIds = new java.util.HashSet<>(request.getAssigneeIds());
+        task.getAssignees().removeIf(ta -> !newIds.contains(ta.getUser().getId()));
 
+        // Find existing assignee user IDs
+        java.util.Set<Long> existingIds = task.getAssignees().stream()
+                .map(ta -> ta.getUser().getId())
+                .collect(Collectors.toSet());
+
+        // Add new assignees
         for (Long userId : request.getAssigneeIds()) {
+            if (existingIds.contains(userId)) continue;
             User assignee = userRepository.findByIdAndIsDeletedFalse(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Nhân viên không tồn tại: " + userId));
             if (assignee.getDepartment() == null || !assignee.getDepartment().getId().equals(taskDept.getId())) {
@@ -144,6 +162,9 @@ public class TaskService {
     public TaskResponse updateTask(Long id, TaskUpdateRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        if (task.getStatus() == TaskStatus.DONE || task.getStatus() == TaskStatus.WAITING_APPROVAL) {
+            throw new BadRequestException("Không thể chỉnh sửa task đã hoàn thành hoặc đang chờ duyệt!");
+        }
         taskMapper.updateEntityFromDto(request, task);
         return toResponseWithAssignees(taskRepository.save(task));
     }
@@ -152,7 +173,11 @@ public class TaskService {
     public void deleteTask(Long id) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        if (task.getStatus() == TaskStatus.IN_PROGRESS || task.getStatus() == TaskStatus.WAITING_APPROVAL) {
+            throw new BadRequestException("Không thể xóa task đang thực hiện hoặc đang chờ duyệt!");
+        }
         task.setIsDeleted(true);
+        task.setDeletedAt(LocalDateTime.now());
         taskRepository.save(task);
     }
 
@@ -160,10 +185,30 @@ public class TaskService {
     public TaskResponse updateStatus(Long id, TaskStatusUpdateRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        task.setStatus(request.getStatus());
-        if (request.getStatus() == TaskStatus.DONE) {
-            task.setCompletedAt(LocalDateTime.now());
+
+        TaskStatus current = task.getStatus();
+        TaskStatus target = request.getStatus();
+
+        // WAITING_APPROVAL and DONE transitions are handled by dedicated endpoints
+        if (target == TaskStatus.DONE) {
+            throw new BadRequestException("Sử dụng chức năng phê duyệt để hoàn thành task!");
         }
+        if (target == TaskStatus.WAITING_APPROVAL) {
+            // Only assignees can submit for approval
+            User currentUser = getCurrentUser();
+            boolean isAssignee = task.getAssignees().stream()
+                    .anyMatch(ta -> ta.getUser().getId().equals(currentUser.getId()));
+            if (!isAssignee) {
+                throw new BadRequestException("Chỉ người được giao mới có thể nộp duyệt!");
+            }
+        }
+
+        java.util.Set<TaskStatus> allowed = VALID_TRANSITIONS.getOrDefault(current, java.util.Set.of());
+        if (!allowed.contains(target)) {
+            throw new BadRequestException("Không thể chuyển trạng thái từ " + current + " sang " + target + "!");
+        }
+
+        task.setStatus(target);
         return toResponseWithAssignees(taskRepository.save(task));
     }
 
@@ -171,6 +216,9 @@ public class TaskService {
     public TaskResponse updateMyProgress(Long taskId, TaskProgressUpdateRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        if (task.getStatus() != TaskStatus.IN_PROGRESS) {
+            throw new BadRequestException("Chỉ có thể cập nhật tiến độ khi task đang thực hiện!");
+        }
         User currentUser = getCurrentUser();
         TaskAssignee ta = taskAssigneeRepository.findByTaskIdAndUserId(taskId, currentUser.getId())
                 .orElseThrow(() -> new BadRequestException("Bạn không được giao task này!"));
@@ -192,26 +240,37 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponse receiveTask(Long id, TaskReceiveRequest request) {
+    public TaskResponse receiveTask(Long id) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
         User currentUser = getCurrentUser();
-        if (!currentUser.getId().equals(request.getUserId())) {
-            throw new BadRequestException("Bạn chỉ có thể nhận task cho chính mình!");
+
+        // Only allow receiving tasks in TODO or IN_PROGRESS status
+        if (task.getStatus() != TaskStatus.TODO && task.getStatus() != TaskStatus.IN_PROGRESS) {
+            throw new BadRequestException("Chỉ có thể nhận task ở trạng thái Chờ làm hoặc Đang làm!");
+        }
+
+        // Check department
+        Department taskDept = task.getDepartment();
+        if (taskDept != null && currentUser.getDepartment() != null
+                && !currentUser.getDepartment().getId().equals(taskDept.getId())) {
+            throw new BadRequestException("Bạn không thuộc phòng ban phụ trách task này!");
         }
 
         boolean alreadyAssigned = task.getAssignees().stream()
                 .anyMatch(ta -> ta.getUser().getId().equals(currentUser.getId()));
-        if (!alreadyAssigned) {
-            TaskAssignee ta = TaskAssignee.builder()
-                    .task(task)
-                    .user(currentUser)
-                    .progress(0)
-                    .build();
-            task.getAssignees().add(ta);
+        if (alreadyAssigned) {
+            throw new BadRequestException("Bạn đã được giao task này rồi!");
         }
 
-        if (task.getStatus() == TaskStatus.NEW || task.getStatus() == TaskStatus.TODO) {
+        TaskAssignee ta = TaskAssignee.builder()
+                .task(task)
+                .user(currentUser)
+                .progress(0)
+                .build();
+        task.getAssignees().add(ta);
+
+        if (task.getStatus() == TaskStatus.TODO) {
             task.setStatus(TaskStatus.IN_PROGRESS);
         }
         return toResponseWithAssignees(taskRepository.save(task));
@@ -220,14 +279,15 @@ public class TaskService {
     @Transactional
     public TaskResponse approveTask(Long id) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc phù hợp!"));
-        if (task.getStatus() == TaskStatus.DONE)
-            throw new BadRequestException("Công việc đã ở trạng thái hoàn thành!");
-        if (task.getStatus() == TaskStatus.REJECTED)
-            throw new BadRequestException("Công việc đã bị từ chối! Không thể duyệt.");
-        if (task.getStatus() != TaskStatus.WAITING_APPROVAL)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc!"));
+
+        if (task.getStatus() != TaskStatus.WAITING_APPROVAL) {
             throw new BadRequestException("Công việc phải ở trạng thái chờ duyệt mới có thể phê duyệt!");
-        task.setStatus(TaskStatus.APPROVED);
+        }
+
+        validateApprover(task);
+
+        task.setStatus(TaskStatus.DONE);
         task.setCompletedAt(LocalDateTime.now());
 
         for (TaskAssignee ta : task.getAssignees()) {
@@ -248,13 +308,14 @@ public class TaskService {
     @Transactional
     public TaskResponse rejectTask(Long id, TaskRejectRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc phù hợp!"));
-        if (task.getStatus() == TaskStatus.DONE)
-            throw new BadRequestException("Công việc đã hoàn thành! Không thể từ chối.");
-        if (task.getStatus() == TaskStatus.REJECTED)
-            throw new BadRequestException("Công việc đã bị từ chối trước đó!");
-        if (task.getStatus() != TaskStatus.WAITING_APPROVAL)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc!"));
+
+        if (task.getStatus() != TaskStatus.WAITING_APPROVAL) {
             throw new BadRequestException("Công việc phải ở trạng thái chờ duyệt mới có thể từ chối!");
+        }
+
+        validateApprover(task);
+
         task.setStatus(TaskStatus.REJECTED);
 
         User approver = getCurrentUser();
@@ -267,6 +328,19 @@ public class TaskService {
         approvalLogRepository.save(log);
 
         return toResponseWithAssignees(taskRepository.save(task));
+    }
+
+    private void validateApprover(Task task) {
+        User currentUser = getCurrentUser();
+        Department taskDept = task.getDepartment();
+        if (taskDept != null) {
+            List<Department> managedDepts = departmentRepository.findByManagerIdAndIsDeletedFalse(currentUser.getId());
+            boolean managesTaskDept = managedDepts.stream()
+                    .anyMatch(d -> d.getId().equals(taskDept.getId()));
+            if (!managesTaskDept && !currentUser.getRole().name().equals("ADMIN")) {
+                throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
+            }
+        }
     }
 
     private TaskResponse toResponseWithAssignees(Task task) {

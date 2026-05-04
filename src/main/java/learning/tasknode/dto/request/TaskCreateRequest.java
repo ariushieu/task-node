@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import learning.tasknode.enums.TaskPriority;
-import learning.tasknode.enums.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,9 +23,6 @@ public class TaskCreateRequest {
     private String title;
 
     private String description;
-
-    @NotNull(message = "Status is required")
-    private TaskStatus status;
 
     @NotNull(message = "Priority is required")
     private TaskPriority priority;
