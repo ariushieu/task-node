@@ -19,8 +19,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.id = :id AND t.isDeleted = false")
     Optional<Task> findByIdAndIsDeletedFalse(Long id);
 
-    @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.startDate >= :start AND t.endDate <= :end")
-    Page<Task> findByCalendarRange(java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
+    @Query("SELECT DISTINCT ta.task FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.user.id = :userId AND ta.task.isDeleted = false AND ta.task.startDate <= :end AND ta.task.endDate >= :start")
+    Page<Task> findCalendarTasksByUser(Long userId, java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
     @Query(value = "SELECT t.project_id, COUNT(*), SUM(CASE WHEN t.status = 'DONE' OR t.status = 'APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status = 'IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.end_date < CURDATE() THEN 1 ELSE 0 END) FROM tasks t WHERE t.is_deleted = false GROUP BY t.project_id", nativeQuery = true)
     List<Object[]> getProjectProgressStats();
