@@ -17,4 +17,5 @@ public class ProjectProgressResponse {
     private int inProgressTasks;
     private int overdueTasks;
     private double percentCompleted;
+    private double avgProgress;
 }

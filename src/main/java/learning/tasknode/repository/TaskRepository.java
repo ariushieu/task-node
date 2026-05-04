@@ -22,15 +22,15 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.startDate >= :start AND t.endDate <= :end")
     Page<Task> findByCalendarRange(java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
-    // Thống kê tiến độ dự án
-    @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")
+    @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' OR t.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")
     List<Object[]> getProjectProgressStats();
 
     // Thống kê hiệu suất theo từng nhân viên trong khoảng thời gian
-    @Query("SELECT t.assignee.id, COUNT(t), SUM(CASE WHEN t.status='DONE' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='REJECTED' THEN 1 ELSE 0 END) FROM Task t WHERE t.assignee IS NOT NULL AND t.isDeleted = false AND (:start IS NULL OR t.createdAt >= :start) AND (:end IS NULL OR t.createdAt <= :end) GROUP BY t.assignee.id")
+    @Query("SELECT ta.user.id, COUNT(ta), SUM(CASE WHEN ta.task.status='DONE' OR ta.task.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN ta.task.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN ta.task.status='REJECTED' THEN 1 ELSE 0 END), AVG(ta.progress) FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.isDeleted = false AND (:start IS NULL OR ta.task.createdAt >= :start) AND (:end IS NULL OR ta.task.createdAt <= :end) GROUP BY ta.user.id")
     List<Object[]> getEmployeePerformance(LocalDateTime start, LocalDateTime end);
 
-    Page<Task> findByAssigneeIdAndIsDeletedFalse(Long assigneeId, Pageable pageable);
+    @Query("SELECT DISTINCT ta.task FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.user.id = :userId AND ta.task.isDeleted = false")
+    Page<Task> findByAssigneeUserId(Long userId, Pageable pageable);
 
     Page<Task> findByDepartmentIdAndIsDeletedFalse(Long departmentId, Pageable pageable);
 
@@ -40,9 +40,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     long countByIsDeletedFalse();
 
-    @Query("SELECT DISTINCT t.assignee FROM Task t WHERE t.project.id = :projectId AND t.assignee IS NOT NULL AND t.isDeleted = false")
+    @Query("SELECT DISTINCT ta.user FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.project.id = :projectId AND ta.task.isDeleted = false")
     List<learning.tasknode.entity.User> findDistinctAssigneesByProjectId(Long projectId);
 
-    @Query("SELECT COUNT(DISTINCT t.assignee) FROM Task t WHERE t.project.id = :projectId AND t.assignee IS NOT NULL AND t.isDeleted = false")
+    @Query("SELECT COUNT(DISTINCT ta.user) FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.project.id = :projectId AND ta.task.isDeleted = false")
     int countDistinctAssigneesByProjectId(Long projectId);
 }

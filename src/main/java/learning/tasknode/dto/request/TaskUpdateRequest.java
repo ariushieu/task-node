@@ -30,8 +30,6 @@ public class TaskUpdateRequest {
 
     private LocalDate endDate;
 
-    private Long assigneeId;
-
     private Long parentTaskId;
 
     private Set<Long> tagIds;

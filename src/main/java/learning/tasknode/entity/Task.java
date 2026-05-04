@@ -17,7 +17,6 @@ import java.util.Set;
 @Table(name = "tasks", indexes = {
         @Index(name = "idx_task_status", columnList = "status"),
         @Index(name = "idx_task_priority", columnList = "priority"),
-        @Index(name = "idx_task_assignee", columnList = "assignee_id"),
         @Index(name = "idx_task_project", columnList = "project_id"),
         @Index(name = "idx_task_department", columnList = "department_id"),
         @Index(name = "idx_task_start_date", columnList = "start_date"),
@@ -60,9 +59,9 @@ public class Task extends BaseEntity {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignee_id")
-    private User assignee;
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<TaskAssignee> assignees = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", nullable = false)

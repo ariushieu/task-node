@@ -62,6 +62,7 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, end
             Long done = (Long) row[2];
             Long inProgress = (Long) row[3];
             Long rejected = (Long) row[4];
+            Double avgProg = (Double) row[5];
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 result.add(EmployeePerformanceResponse.builder()
@@ -73,6 +74,7 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, end
                         .completedTasks(done.intValue())
                         .inProgressTasks(inProgress.intValue())
                         .rejectedTasks(rejected.intValue())
+                        .avgProgress(avgProg != null ? avgProg : 0.0)
                         .build());
             }
         }

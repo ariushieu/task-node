@@ -10,14 +10,12 @@ import org.mapstruct.*;
 public interface TaskMapper {
     @Mapping(target = "project", ignore = true)
     @Mapping(target = "department", ignore = true)
-    @Mapping(target = "assignee", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "parentTask", ignore = true)
     @Mapping(target = "tags", ignore = true)
     Task toEntity(TaskCreateRequest dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "assignee", ignore = true)
     @Mapping(target = "department", ignore = true)
     void updateEntityFromDto(TaskUpdateRequest dto, @MappingTarget Task entity);
 
@@ -25,9 +23,8 @@ public interface TaskMapper {
     @Mapping(target = "projectName", source = "project.name")
     @Mapping(target = "departmentId", source = "department.id")
     @Mapping(target = "departmentName", source = "department.name")
-    @Mapping(target = "assigneeId", source = "assignee.id")
-    @Mapping(target = "assigneeName", source = "assignee.fullName")
-    @Mapping(target = "assigneeAvatarUrl", source = "assignee.avatarUrl")
+    @Mapping(target = "assignees", ignore = true)
+    @Mapping(target = "progress", ignore = true)
     @Mapping(target = "createdById", source = "createdBy.id")
     @Mapping(target = "createdByName", source = "createdBy.fullName")
     @Mapping(target = "parentTaskId", source = "parentTask.id")

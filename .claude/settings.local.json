@@ -3,7 +3,11 @@
     "allow": [
       "Bash(dir \"E:\\\\TaskNode\\\\src\\\\main\\\\java\\\\learning\\\\tasknode\\\\\")",
       "Bash(mkdir -p \"C:\\\\Users\\\\hieun\\\\.claude\\\\plans\")",
-      "Read(//c/Users/hieun/.claude/**)"
+      "Read(//c/Users/hieun/.claude/**)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(npx *)",
+      "Bash(pushd \"E:\\\\task-node-fe\")"
     ]
   }
 }

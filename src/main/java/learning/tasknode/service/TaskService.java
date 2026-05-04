@@ -2,6 +2,7 @@ package learning.tasknode.service;
 
 import learning.tasknode.dto.request.TaskAssignRequest;
 import learning.tasknode.dto.request.TaskCreateRequest;
+import learning.tasknode.dto.request.TaskProgressUpdateRequest;
 import learning.tasknode.dto.request.TaskStatusUpdateRequest;
 import learning.tasknode.dto.request.TaskUpdateRequest;
 import learning.tasknode.dto.request.TaskReceiveRequest;
@@ -9,6 +10,7 @@ import learning.tasknode.dto.request.TaskRejectRequest;
 import learning.tasknode.dto.response.TaskResponse;
 import learning.tasknode.entity.Department;
 import learning.tasknode.entity.Task;
+import learning.tasknode.entity.TaskAssignee;
 import learning.tasknode.entity.Project;
 import learning.tasknode.entity.User;
 import learning.tasknode.enums.TaskStatus;
@@ -20,6 +22,7 @@ import learning.tasknode.mapper.TaskMapper;
 import learning.tasknode.repository.ApprovalLogRepository;
 import learning.tasknode.repository.DepartmentRepository;
 import learning.tasknode.repository.ProjectRepository;
+import learning.tasknode.repository.TaskAssigneeRepository;
 import learning.tasknode.repository.TaskRepository;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +45,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final TaskAssigneeRepository taskAssigneeRepository;
     private final ApprovalLogRepository approvalLogRepository;
     private final TaskMapper taskMapper;
 
@@ -60,17 +65,17 @@ public class TaskService {
         task.setCreatedBy(createdBy);
         if (task.getStatus() == null) task.setStatus(TaskStatus.NEW);
 
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
     }
 
     public Page<TaskResponse> getAllTasks(Pageable pageable) {
-        return taskRepository.findAllActive(pageable).map(taskMapper::toResponse);
+        return taskRepository.findAllActive(pageable).map(this::toResponseWithAssignees);
     }
 
     public Page<TaskResponse> getMyTasks(Pageable pageable) {
         User currentUser = getCurrentUser();
-        return taskRepository.findByAssigneeIdAndIsDeletedFalse(currentUser.getId(), pageable)
-                .map(taskMapper::toResponse);
+        return taskRepository.findByAssigneeUserId(currentUser.getId(), pageable)
+                .map(this::toResponseWithAssignees);
     }
 
     public Page<TaskResponse> getMyDepartmentTasks(Pageable pageable) {
@@ -81,7 +86,7 @@ public class TaskService {
         }
         List<Long> deptIds = departments.stream().map(Department::getId).toList();
         return taskRepository.findByDepartmentIdInAndIsDeletedFalse(deptIds, pageable)
-                .map(taskMapper::toResponse);
+                .map(this::toResponseWithAssignees);
     }
 
     @Transactional
@@ -104,36 +109,40 @@ public class TaskService {
             throw new BadRequestException("Bạn không phải trưởng phòng ban phụ trách task này!");
         }
 
-        User assignee = userRepository.findByIdAndIsDeletedFalse(request.getAssigneeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Nhân viên không tồn tại!"));
-        if (assignee.getDepartment() == null || !assignee.getDepartment().getId().equals(taskDept.getId())) {
-            throw new BadRequestException("Nhân viên không thuộc phòng ban phụ trách task này!");
+        task.getAssignees().clear();
+
+        for (Long userId : request.getAssigneeIds()) {
+            User assignee = userRepository.findByIdAndIsDeletedFalse(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Nhân viên không tồn tại: " + userId));
+            if (assignee.getDepartment() == null || !assignee.getDepartment().getId().equals(taskDept.getId())) {
+                throw new BadRequestException("Nhân viên " + assignee.getFullName() + " không thuộc phòng ban phụ trách task này!");
+            }
+            TaskAssignee ta = TaskAssignee.builder()
+                    .task(task)
+                    .user(assignee)
+                    .progress(0)
+                    .build();
+            task.getAssignees().add(ta);
         }
 
-        task.setAssignee(assignee);
         if (task.getStatus() == TaskStatus.NEW) {
             task.setStatus(TaskStatus.TODO);
         }
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
     }
 
     public TaskResponse getTask(Long id) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        return taskMapper.toResponse(task);
+        return toResponseWithAssignees(task);
     }
 
     @Transactional
     public TaskResponse updateTask(Long id, TaskUpdateRequest request) {
         Task task = taskRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        if (request.getAssigneeId() != null) {
-            User assignee = userRepository.findById(request.getAssigneeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));
-            task.setAssignee(assignee);
-        }
         taskMapper.updateEntityFromDto(request, task);
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
     }
 
     @Transactional
@@ -152,7 +161,19 @@ public class TaskService {
         if (request.getStatus() == TaskStatus.DONE) {
             task.setCompletedAt(LocalDateTime.now());
         }
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
+    }
+
+    @Transactional
+    public TaskResponse updateMyProgress(Long taskId, TaskProgressUpdateRequest request) {
+        Task task = taskRepository.findByIdAndIsDeletedFalse(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        User currentUser = getCurrentUser();
+        TaskAssignee ta = taskAssigneeRepository.findByTaskIdAndUserId(taskId, currentUser.getId())
+                .orElseThrow(() -> new BadRequestException("Bạn không được giao task này!"));
+        ta.setProgress(request.getProgress());
+        taskAssigneeRepository.save(ta);
+        return toResponseWithAssignees(task);
     }
 
     @Transactional
@@ -163,11 +184,22 @@ public class TaskService {
         if (!currentUser.getId().equals(request.getUserId())) {
             throw new BadRequestException("Bạn chỉ có thể nhận task cho chính mình!");
         }
-        task.setAssignee(currentUser);
+
+        boolean alreadyAssigned = task.getAssignees().stream()
+                .anyMatch(ta -> ta.getUser().getId().equals(currentUser.getId()));
+        if (!alreadyAssigned) {
+            TaskAssignee ta = TaskAssignee.builder()
+                    .task(task)
+                    .user(currentUser)
+                    .progress(0)
+                    .build();
+            task.getAssignees().add(ta);
+        }
+
         if (task.getStatus() == TaskStatus.NEW || task.getStatus() == TaskStatus.TODO) {
             task.setStatus(TaskStatus.IN_PROGRESS);
         }
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
     }
 
     @Transactional
@@ -183,6 +215,10 @@ public class TaskService {
         task.setStatus(TaskStatus.APPROVED);
         task.setCompletedAt(LocalDateTime.now());
 
+        for (TaskAssignee ta : task.getAssignees()) {
+            ta.setProgress(100);
+        }
+
         User approver = getCurrentUser();
         ApprovalLog log = ApprovalLog.builder()
                 .task(task)
@@ -191,7 +227,7 @@ public class TaskService {
                 .build();
         approvalLogRepository.save(log);
 
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
     }
 
     @Transactional
@@ -215,7 +251,31 @@ public class TaskService {
                 .build();
         approvalLogRepository.save(log);
 
-        return taskMapper.toResponse(taskRepository.save(task));
+        return toResponseWithAssignees(taskRepository.save(task));
+    }
+
+    private TaskResponse toResponseWithAssignees(Task task) {
+        TaskResponse response = taskMapper.toResponse(task);
+        List<TaskResponse.AssigneeInfo> assigneeInfos = task.getAssignees().stream()
+                .map(ta -> TaskResponse.AssigneeInfo.builder()
+                        .id(ta.getUser().getId())
+                        .fullName(ta.getUser().getFullName())
+                        .avatarUrl(ta.getUser().getAvatarUrl())
+                        .progress(ta.getProgress())
+                        .build())
+                .collect(Collectors.toList());
+        response.setAssignees(assigneeInfos);
+
+        if (assigneeInfos.isEmpty()) {
+            response.setProgress(0);
+        } else {
+            int avg = (int) Math.round(assigneeInfos.stream()
+                    .mapToInt(TaskResponse.AssigneeInfo::getProgress)
+                    .average()
+                    .orElse(0));
+            response.setProgress(avg);
+        }
+        return response;
     }
 
     private User getCurrentUser() {

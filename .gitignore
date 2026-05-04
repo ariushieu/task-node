@@ -45,3 +45,12 @@ HELP.md
 RULE.md
 WEBSOCKET_DEMO.md
 api.md
+
+# Generated scripts and reports
+build.js
+TaskNode_BaoCao_QLDAPM.docx
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+package.json

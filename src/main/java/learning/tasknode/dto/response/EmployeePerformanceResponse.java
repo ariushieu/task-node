@@ -18,4 +18,5 @@ public class EmployeePerformanceResponse {
     private int completedTasks;
     private int inProgressTasks;
     private int rejectedTasks;
+    private double avgProgress;
 }

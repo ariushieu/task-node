@@ -32,9 +32,8 @@ public class TaskResponse {
     private Long departmentId;
     private String departmentName;
 
-    private Long assigneeId;
-    private String assigneeName;
-    private String assigneeAvatarUrl;
+    private List<AssigneeInfo> assignees;
+    private Integer progress;
 
     private Long createdById;
     private String createdByName;
@@ -49,4 +48,15 @@ public class TaskResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AssigneeInfo {
+        private Long id;
+        private String fullName;
+        private String avatarUrl;
+        private Integer progress;
+    }
 }

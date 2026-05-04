@@ -2,6 +2,7 @@ package learning.tasknode.controller;
 
 import jakarta.validation.Valid;
 import learning.tasknode.dto.request.*;
+import learning.tasknode.dto.request.TaskProgressUpdateRequest;
 import learning.tasknode.dto.response.TaskResponse;
 import learning.tasknode.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -87,5 +88,11 @@ public class TaskController {
     public ResponseEntity<TaskResponse> receiveTask(@PathVariable Long id,
                                                    @Valid @RequestBody TaskReceiveRequest request) {
         return ResponseEntity.ok(taskService.receiveTask(id, request));
+    }
+
+    @PutMapping("/{id}/progress")
+    public ResponseEntity<TaskResponse> updateProgress(@PathVariable Long id,
+                                                       @Valid @RequestBody TaskProgressUpdateRequest request) {
+        return ResponseEntity.ok(taskService.updateMyProgress(id, request));
     }
 }

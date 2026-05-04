@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TaskAssignRequest {
 
-    @NotNull(message = "Assignee ID is required")
-    private Long assigneeId;
+    @NotNull(message = "Assignee IDs are required")
+    private java.util.List<Long> assigneeIds;
 }
