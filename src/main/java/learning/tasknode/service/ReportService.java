@@ -25,14 +25,15 @@ public class ReportService {
         List<Object[]> stats = taskRepository.getProjectProgressStats();
         List<ProjectProgressResponse> list = new ArrayList<>();
         for (Object[] row : stats) {
-            Long projectId = (Long) row[0];
-            Long total = (Long) row[1];
-            Long done = (Long) row[2];
-            Long inProgress = (Long) row[3];
-            Long overdue = (Long) row[4];
+            Long projectId = ((Number) row[0]).longValue();
+            Long total = ((Number) row[1]).longValue();
+            Long done = ((Number) row[2]).longValue();
+            Long inProgress = ((Number) row[3]).longValue();
+            Long overdue = ((Number) row[4]).longValue();
             Project p = projectRepository.findById(projectId).orElse(null);
             if (p != null) {
                 double percent = (total != 0) ? (done * 100.0 / total) : 0.0;
+                Double avgProg = row[5] != null ? ((Number) row[5]).doubleValue() : 0.0;
                 list.add(ProjectProgressResponse.builder()
                         .projectId(projectId)
                         .projectName(p.getName())
@@ -41,6 +42,7 @@ public class ReportService {
                         .inProgressTasks(inProgress.intValue())
                         .overdueTasks(overdue.intValue())
                         .percentCompleted(percent)
+                        .avgProgress(avgProg)
                         .build());
             }
         }
@@ -57,12 +59,12 @@ return new org.springframework.data.domain.PageImpl<>(list.subList(startIdx, end
         List<Object[]> stats = taskRepository.getEmployeePerformance(startTime, endTime);
         List<EmployeePerformanceResponse> result = new ArrayList<>();
         for (Object[] row : stats) {
-            Long userId = (Long) row[0];
-            Long total = (Long) row[1];
-            Long done = (Long) row[2];
-            Long inProgress = (Long) row[3];
-            Long rejected = (Long) row[4];
-            Double avgProg = (Double) row[5];
+            Long userId = ((Number) row[0]).longValue();
+            Long total = ((Number) row[1]).longValue();
+            Long done = ((Number) row[2]).longValue();
+            Long inProgress = ((Number) row[3]).longValue();
+            Long rejected = ((Number) row[4]).longValue();
+            Double avgProg = row[5] != null ? ((Number) row[5]).doubleValue() : 0.0;
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 result.add(EmployeePerformanceResponse.builder()

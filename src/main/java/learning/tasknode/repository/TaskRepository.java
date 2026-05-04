@@ -22,7 +22,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.startDate >= :start AND t.endDate <= :end")
     Page<Task> findByCalendarRange(java.time.LocalDate start, java.time.LocalDate end, Pageable pageable);
 
-    @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' OR t.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")
+    @Query("SELECT t.project.id, COUNT(t), SUM(CASE WHEN t.status='DONE' OR t.status='APPROVED' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status='IN_PROGRESS' THEN 1 ELSE 0 END), SUM(CASE WHEN t.status IN ('IN_PROGRESS','TODO','NEW') AND t.endDate < CURRENT_DATE THEN 1 ELSE 0 END), (SELECT AVG(ta.progress) FROM learning.tasknode.entity.TaskAssignee ta WHERE ta.task.project.id = t.project.id AND ta.task.isDeleted = false) FROM Task t WHERE t.isDeleted = false GROUP BY t.project.id")
     List<Object[]> getProjectProgressStats();
 
     // Thống kê hiệu suất theo từng nhân viên trong khoảng thời gian
