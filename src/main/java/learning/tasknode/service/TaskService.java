@@ -23,6 +23,7 @@ import learning.tasknode.repository.ApprovalLogRepository;
 import learning.tasknode.repository.DepartmentRepository;
 import learning.tasknode.repository.ProjectRepository;
 import learning.tasknode.repository.TaskAssigneeRepository;
+import learning.tasknode.repository.TaskProgressLogRepository;
 import learning.tasknode.repository.TaskRepository;
 import learning.tasknode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +48,7 @@ public class TaskService {
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final TaskAssigneeRepository taskAssigneeRepository;
+    private final TaskProgressLogRepository taskProgressLogRepository;
     private final ApprovalLogRepository approvalLogRepository;
     private final TaskMapper taskMapper;
 
@@ -173,6 +176,18 @@ public class TaskService {
                 .orElseThrow(() -> new BadRequestException("Bạn không được giao task này!"));
         ta.setProgress(request.getProgress());
         taskAssigneeRepository.save(ta);
+
+        LocalDate today = LocalDate.now();
+        learning.tasknode.entity.TaskProgressLog log = taskProgressLogRepository
+                .findByTaskIdAndUserIdAndLogDate(taskId, currentUser.getId(), today)
+                .orElse(learning.tasknode.entity.TaskProgressLog.builder()
+                        .task(task)
+                        .user(currentUser)
+                        .logDate(today)
+                        .build());
+        log.setProgress(request.getProgress());
+        taskProgressLogRepository.save(log);
+
         return toResponseWithAssignees(task);
     }
 
