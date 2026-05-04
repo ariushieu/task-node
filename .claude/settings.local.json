@@ -7,7 +7,11 @@
       "Bash(npm run *)",
       "Bash(npx tsc *)",
       "Bash(npx *)",
-      "Bash(pushd \"E:\\\\task-node-fe\")"
+      "Bash(pushd \"E:\\\\task-node-fe\")",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(./mvnw compile *)"
     ]
   }
 }

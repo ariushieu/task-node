@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
@@ -36,23 +34,12 @@ public class ReportController {
 
     @GetMapping("/export")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-public ResponseEntity<byte[]> exportProjectProgress(
-        @RequestParam(required = false, defaultValue = "excel") String type,
-        org.springframework.data.domain.Pageable pageable) throws Exception {
-    org.springframework.data.domain.Page<ProjectProgressResponse> page = reportService.getProjectProgress(pageable);
-    List<ProjectProgressResponse> data = page.getContent();
-    if ("pdf".equalsIgnoreCase(type)) {
-        byte[] pdf = exportService.exportProjectProgressToPdf(data);
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=project-progress.pdf")
-                .header("Content-Type", "application/pdf")
-                .body(pdf);
-    } else {
-        byte[] excel = exportService.exportProjectProgressToExcel(data);
+    public ResponseEntity<byte[]> exportProjectProgress(org.springframework.data.domain.Pageable pageable) throws Exception {
+        org.springframework.data.domain.Page<ProjectProgressResponse> page = reportService.getProjectProgress(pageable);
+        byte[] excel = exportService.exportProjectProgressToExcel(page.getContent());
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=project-progress.xlsx")
                 .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                 .body(excel);
     }
-}
 }

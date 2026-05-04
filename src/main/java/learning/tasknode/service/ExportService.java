@@ -1,13 +1,10 @@
 package learning.tasknode.service;
 
-import com.itextpdf.text.Font;
 import learning.tasknode.dto.response.ProjectProgressResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -119,63 +116,4 @@ public class ExportService {
         }
     }
 
-    public byte[] exportProjectProgressToPdf(List<ProjectProgressResponse> data) throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document doc = new Document(PageSize.A4.rotate(), 36, 36, 50, 36);
-        PdfWriter.getInstance(doc, out);
-        doc.open();
-
-        // Title
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY);
-        Paragraph title = new Paragraph("BÁO CÁO TIẾN ĐỘ DỰ ÁN", titleFont);
-        title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(20);
-        doc.add(title);
-
-        // Table
-        String[] headers = {"STT", "Tên dự án", "Tổng CV", "Hoàn thành", "Đang làm", "Quá hạn", "Tiến độ (task)", "Tiến độ (TB)"};
-        PdfPTable table = new PdfPTable(headers.length);
-        table.setWidthPercentage(100);
-        table.setWidths(new float[]{5, 25, 10, 10, 10, 10, 15, 15});
-
-        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE);
-        BaseColor headerBg = new BaseColor(41, 65, 122);
-        for (String h : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            cell.setBackgroundColor(headerBg);
-            cell.setPadding(8);
-            table.addCell(cell);
-        }
-
-        Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
-        BaseColor altBg = new BaseColor(245, 245, 250);
-        for (int i = 0; i < data.size(); i++) {
-            ProjectProgressResponse row = data.get(i);
-            BaseColor rowBg = (i % 2 == 1) ? altBg : BaseColor.WHITE;
-
-            addCell(table, String.valueOf(i + 1), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, row.getProjectName(), cellFont, rowBg, Element.ALIGN_LEFT);
-            addCell(table, String.valueOf(row.getTotalTasks()), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.valueOf(row.getCompletedTasks()), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.valueOf(row.getInProgressTasks()), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.valueOf(row.getOverdueTasks()), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.format("%.1f%%", row.getPercentCompleted()), cellFont, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.format("%.1f%%", row.getAvgProgress()), cellFont, rowBg, Element.ALIGN_CENTER);
-        }
-
-        doc.add(table);
-        doc.close();
-        return out.toByteArray();
-    }
-
-    private void addCell(PdfPTable table, String text, Font font, BaseColor bg, int align) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setHorizontalAlignment(align);
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        cell.setBackgroundColor(bg);
-        cell.setPadding(6);
-        table.addCell(cell);
-    }
 }
